@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+desktop.ini
+.DS_Store
+Thumbs.db
+
+# Large input data (do not commit raw data to repo)
+input_data/US_Returns.csv
+input_data/US_live,csv.csv
+input_data/US_Names.xlsx
+input_data/US_Dates.xlsx
+input_data/FamaFrench.csv
+
+# Generated outputs (logs, CSVs, plots) – keep folder but not contents
+output_data/*.log
+output_data/*.csv
+output_data/*.png
+
+# Loose diagnostic / scratch scripts
+_diag_*.py
+
+# Loose figures at project root
+*.png
+Figure_1.png
+momentum_results.png
+momentum_comparison.png
+Annualised Mean Return and Sharpe Ratio.png
