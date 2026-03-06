@@ -1,5 +1,7 @@
 # Momentum Trading Strategy
+
 ### SMM282 Quantitative Trading — Coursework 2026
+
 **Enhancing a Standard Momentum Factor using Lou & Polk (2021) Comomentum**
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://www.python.org/)
@@ -11,38 +13,123 @@
 ## Project Overview
 
 This project implements and enhances a standard equity momentum trading strategy
-using the comomentum measure introduced by Lou & Polk (2021). The core idea is that
-crowded momentum trades (high comomentum) predict weaker future momentum returns,
-and we can improve performance by scaling down momentum bets when crowding is high.
+using the **comomentum** measure introduced by Lou & Polk (2021). The core idea is
+that crowded momentum trades (high comomentum) predict weaker future momentum
+returns, and performance can be improved by scaling down momentum bets when
+crowding is high.
+
+**Key features:**
+
+- Modular pipeline — each step is a standalone, reusable `.py` module
+- True **pairwise abnormal correlations** (paper-accurate, not leave-one-out)
+- Rolling 52-week FF3 residual estimation (time-varying betas per Lewellen & Nagel, 2006)
+- Fama-MacBeth regressions with Excel output (Documentation + Data sheets)
+- Event-study plot replicating Figure 2 from the paper
+- Diagnostic exports: FF3 residuals and pairwise correlation matrices to Excel
 
 ---
 
 ## Project Structure
 
-```
-momentum_strategy.py      Main pipeline / entry point (runs Steps 1-7)
-data_loader.py            Loads and validates all input data files
-momentum_factor.py        Computes momentum, comomentum, adjusted momentum
-standardiseFactor.py      Cross-sectional z-score standardisation utility
-fama_macbeth.py           Fama-MacBeth cross-sectional regression engine
-performance.py            Summary statistics and charting utilities
-input_data/               Raw input files
-output_data/              Generated outputs (CSVs, plots, log files)
-```
+### Core Pipeline
+
+| File | Description |
+|------|-------------|
+| `momentum_strategy.py` | **Main entry point** — orchestrates Steps 1–6 |
+| `config.py` | Single source of truth for all tuneable parameters |
+| `data_loader.py` | Step 1: Loads and validates all input data files |
+| `stock_diagnostics.py` | Step 1b: Flags short-lived & gapped stocks |
+| `clean_returns.py` | Return cleaning utilities |
+| `compute_momentum_signal.py` | Step 2: Rolling momentum (48w lookback, 4w skip) |
+| `compute_comomentum.py` | Step 4: Comomentum via pairwise abnormal correlations |
+| `compute_adjusted_momentum.py` | Step 5: Inverse-comomentum scaling of factor returns |
+| `standardiseFactor.py` | Cross-sectional z-score utility |
+| `fama_macbeth.py` | Fama-MacBeth cross-sectional regression engine |
+| `performance.py` | Summary statistics and comparison charting |
+| `logger_setup.py` | Centralised logging configuration |
+
+### Output & Diagnostic Modules
+
+| File | Description |
+|------|-------------|
+| `step2_outputs.py` | Saves momentum CSVs (raw, standardised, summary) |
+| `step2_plots.py` | Step 2 diagnostic charts (scatter, histogram, 4-panel) |
+| `save_ff3_residuals.py` | Exports FF3 residuals snapshot to Excel |
+| `save_pairwise_correlations.py` | Exports pairwise correlation matrices to Excel |
+| `plot_comom_event_study.py` | Two-panel event-study plot (Figure 2 from paper) |
+
+### Data-Loading Helpers
+
+| File | Description |
+|------|-------------|
+| `read_returns.py` | Reads `US_Returns.csv` |
+| `read_live.py` | Reads `US_live,csv.csv` |
+| `read_dates.py` | Reads `US_Dates.xlsx` |
+| `read_names.py` | Reads `US_Names.xlsx` |
+| `read_fama_french.py` | Reads `FamaFrench.csv` |
+
+### Exploratory / Diagnostic Plots
+
+| File | Description |
+|------|-------------|
+| `plot1_universe_size.py` | Stock universe size over time |
+| `plot2_listed_vs_notlisted.py` | Listed vs not-listed stocks |
+| `plot3_return_statistics.py` | Return statistics over time |
+| `plot4_return_distribution.py` | Return distribution |
+| `plot5_missing_data.py` | Missing data heatmap |
+| `plot6_ff_cumulative.py` | FF factor cumulative returns |
+| `plot_cleaning_impact.py` | Before/after cleaning comparison |
+| `plot_dimensions.py` | Data dimension checks |
+| `plot_loading_summary.py` | Loading summary dashboard |
+| `dataplots.py` | General exploratory plots |
+| `exploration_plots.py` | Additional exploration |
+
+### Other
+
+| File | Description |
+|------|-------------|
+| `dimension_checks.py` | Data dimension validation |
+| `momentum_schedule.py` | Momentum computation schedule |
+| `momentum_factor.py` | Legacy momentum module (superseded by pipeline) |
+| `solveCAPMExercise.py` | CAPM exercise (course reference) |
+| `solveFamaMacBethExercise.py` | FM exercise (course reference) |
+| `solveFamaMacBethMultiExercise.py` | Multi-factor FM exercise |
+| `test_clean_returns.py` | Unit test: return cleaning |
+| `test_nan_after_cleaning.py` | Unit test: NaN handling |
+| `test_zero_returns.py` | Unit test: zero returns |
+| `_diag_minpct.py` | Diagnostic: minimum percentile tuning |
+| `_diag_weeks.py` | Diagnostic: weeks tuning |
 
 ---
 
 ## Pipeline Steps
 
-| Step | Description |
-|------|-------------|
-| 1 | Load and validate all input data |
-| 2 | Compute standard (baseline) momentum factor |
-| 3 | Run Fama-MacBeth regressions on standard momentum |
-| 4 | Compute comomentum measure (Lou & Polk, 2021) |
-| 5 | Adjust momentum using inverse comomentum signal |
-| 6 | Re-run Fama-MacBeth on adjusted momentum |
-| 7 | Compare results: plots and summary statistics |
+| Step | Description | Module | Status |
+|------|-------------|--------|--------|
+| 1 | Load & validate all input data | `data_loader.py` | ✅ Complete |
+| 1b | Flag & exclude short-lived stocks (< 52 weeks) | `stock_diagnostics.py` | ✅ Complete |
+| 2 | Compute standard momentum factor (48w LB, 4w rolling skip) | `compute_momentum_signal.py` | ✅ Complete |
+| 3 | Fama-MacBeth regressions on standard momentum | `fama_macbeth.py` | ✅ Complete |
+| 4 | Compute comomentum — pairwise abnormal correlations | `compute_comomentum.py` | ✅ Complete |
+| 5 | Adjust momentum: scale factor returns by inverse comomentum | `compute_adjusted_momentum.py` | ✅ Complete |
+| 6 | Compare Standard vs Adjusted: summary stats & plots | `performance.py` | ✅ Complete |
+
+---
+
+## Configuration Parameters (`config.py`)
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `LOOKBACK` | 48 | Weeks of compounded returns (≈ 11 months) |
+| `SKIP` | 4 | Most recent weeks excluded (short-term reversal) |
+| `TOTAL` | 52 | `LOOKBACK + SKIP` — weeks of history before first score |
+| `CORR_WINDOW` | 52 | Rolling FF3 regression window (weeks) |
+| `DECILE_PCT_LO` | 10 | Bottom 10% = extreme loser decile |
+| `DECILE_PCT_HI` | 90 | Top 10% = extreme winner decile |
+| `MIN_PAST_VALUES` | 10 | Min past comomentum values for percentile rank |
+| `WEEKS_PER_YEAR` | 52 | Annualisation factor |
+| `MIN_RESID_OBS` | None | Reserved — uses `CORR_WINDOW` as threshold |
+| `MIN_STOCKS` | None | Reserved — accepts any decile size ≥ 2 |
 
 ---
 
@@ -50,151 +137,126 @@ output_data/              Generated outputs (CSVs, plots, log files)
 
 | File | Description |
 |------|-------------|
-| `US_Returns.csv` | T x N matrix of weekly stock returns (T=1513 weeks, N=7261 stocks) |
-| `US_live,csv.csv` | T x N matrix of live/dead dummies (1 = stock is listed, 0 = delisted) |
-| `US_Dates.xlsx` | T x 1 vector of weekly date labels (1992-01-03 to 2020-12-25) |
-| `US_Names.xlsx` | 1 x N vector of stock ticker names |
-| `FamaFrench.csv` | T x 4 matrix of Fama-French factors (Mkt-RF, SMB, HML, RF) |
+| `US_Returns.csv` | T × N matrix of weekly stock returns (T=1,513 weeks, N=7,261 stocks) |
+| `US_live,csv.csv` | T × N live/dead indicator (1 = listed, 0 = not listed) |
+| `US_Dates.xlsx` | T × 1 weekly date labels (1992-01-03 to 2020-12-25) |
+| `US_Names.xlsx` | 1 × N stock ticker names |
+| `FamaFrench.csv` | T × 4 Fama-French factors (Mkt-RF, SMB, HML, RF) |
 
 ---
 
-## Momentum Factor Parameters
+## Methodology
 
-| Parameter | Value | Meaning |
-|-----------|-------|---------|
-| `lookback` | 48 weeks | Width of the return window, **including the current week** |
-| `skip` | 4 weeks | Latest 4 weeks of the dataset are excluded **once globally** |
+### Momentum Signal (Step 2)
 
-### Momentum Factor Date Range
+At each week *t*, for each stock *i*:
 
-| Event | Week Index | Date |
-|-------|-----------|------|
-| Dataset start | 0 | 1992-01-03 |
-| Dataset end | 1512 | 2020-12-25 |
-| Skipped weeks | 1509–1512 | 2020-12-04 to 2020-12-25 |
-| **1st momentum factor** | **1508** | **2020-11-27** — lookback [1461..1508] |
-| 2nd momentum factor | 1507 | 2020-11-20 — lookback [1460..1507] |
-| ... | ... | ... |
-| **Last momentum factor** | **47** | **1992-11-27** — lookback [0..47] |
-| **Total weeks with factors** | **1462** | weeks 47 to 1508 |
+```
+mom_{i,t} = ∏(1 + r_{i,s}  for s in [t-51, t-4]) − 1
+```
+
+- **48-week lookback** starting 52 weeks back, skipping the most recent 4 weeks
+- The skip is **rolling** — always the 4 weeks immediately before *t*
+- A stock must have all 52 weekly returns present to receive a score
+- First momentum score: week index 51 (1992-12-25)
+- 1,462 scored weeks (indices 51–1512)
+- Cross-sectionally z-scored → `momentum_std`
+
+### Comomentum (Step 4) — Lou & Polk (2021)
+
+At each week *t*:
+
+1. **Sort** all live stocks with valid momentum into deciles (top/bottom 10%)
+2. **FF3 residuals**: For each loser/winner stock, regress its last 52 weeks of
+   returns on Mkt-RF, SMB, HML using OLS. Collect residuals (abnormal returns).
+   Betas vary over time (rolling 52-week window, per Lewellen & Nagel 2006).
+3. **Pairwise correlations**: For each decile, compute the full K × K
+   correlation matrix of FF3 residuals using `np.corrcoef`. Extract all
+   K(K−1)/2 unique upper-triangle pairs.
+4. **Decile comomentum**: Average of all pairwise correlations
+5. **Comomentum**: CoMOM = 0.5 × (CoMOM\_Winners + CoMOM\_Losers)
+
+### Adjusted Momentum (Step 5)
+
+The **factor returns** (Fama-MacBeth γ) are scaled — NOT the exposures:
+
+```
+scaling_t = 2.0 − percentile_rank(comomentum_{t−1})
+gamma_adj_t = gamma_std_t × scaling_t
+```
+
+- Low comomentum (rank ≈ 0) → scaling ≈ 2.0 → increase momentum bet
+- High comomentum (rank ≈ 1) → scaling ≈ 1.0 → reduce momentum bet
+- Percentile rank uses an **expanding window** (no look-ahead bias)
+
+### Why Scale Returns, Not Exposures?
+
+Scaling all stocks' exposures by the same time-varying factor and then
+re-standardising cross-sectionally perfectly undoes the scaling (since z-scoring
+removes any constant multiplier). The comomentum signal must therefore be applied
+to the **factor return series** (γ\_t), where it genuinely modulates the strategy's
+time-varying bet size.
 
 ---
 
 ## Terminology
 
-Three related but distinct terms are used throughout this project:
+| Term | Meaning | Variable |
+|------|---------|----------|
+| Raw momentum | 48-week compounded return | `momentum` |
+| Standardised momentum | Cross-sectional z-score (mean=0, std=1) | `momentum_std` |
+| Standard momentum | Baseline strategy (before comomentum adjustment) | `gamma_std` |
+| Adjusted momentum | Factor returns scaled by inverse comomentum | `gamma_adj` |
 
-### 1. Raw Momentum Factor
-The 48-week compounded return for each stock at each week:
-
-```
-mom_{i,t} = prod(1 + r_{i,s}  for s in [t-47, t]) - 1
-```
-
-- Computed in `momentum_factor.compute_momentum()`
-- Variable name: `momentum`  —  Shape: T x N
-
-### 2. Standardised Momentum Factor
-The **cross-sectional z-score** of the raw momentum factor:
-
-```
-z_{i,t} = (mom_{i,t} - mean_t) / std_t
-```
-
-where `mean_t` and `std_t` are computed across all N stocks at week t.
-
-- Computed in `standardiseFactor.standardiseFactor()`
-- Variable name: `momentum_std`  —  Shape: T x N
-- At each week t: cross-sectional mean = 0, std = 1
-- **"Standardised" = z-scored (a statistical operation)**
-
-### 3. Standard Momentum Factor
-Refers to the **baseline / conventional** momentum strategy
-(Jegadeesh & Titman, 1993) **before** any comomentum adjustment.
-It encompasses both the raw factor and its standardised form.
-
-- **"Standard" = conventional/unadjusted (a strategic distinction)**
-- This is NOT the same as "standardised"
-
-### 4. Adjusted Momentum Factor
-The standardised momentum factor scaled by an inverse comomentum signal
-(Lou & Polk, 2021) and then re-standardised cross-sectionally.
-
-- Computed in `momentum_factor.compute_adjusted_momentum()`
-- Variable name: `momentum_adj_std`  —  Shape: T x N
-
-### Summary Table
-
-| Term | Statistical meaning | Variable |
-|------|-------------------|----------|
-| Raw momentum factor | 48-week compounded return | `momentum` |
-| **Standardised** momentum factor | z-score of raw (mean=0, std=1) | `momentum_std` |
-| **Standard** momentum factor | Baseline strategy (before adjustment) | `momentum` + `momentum_std` |
-| Adjusted momentum factor | Comomentum-scaled & re-standardised | `momentum_adj_std` |
+- **"Standardised"** = z-scored (a statistical operation)
+- **"Standard"** = conventional/unadjusted (a strategic distinction)
 
 ---
 
-## Why Standardise (z-score) the Momentum Factor?
+## Output Files
 
-### 1. Comparability Across Time
-Raw momentum values (cumulative returns) vary widely in magnitude across market
-regimes. During volatile markets the spread of raw momentum is large; in calm
-periods it is small. Standardising ensures that an exposure of +1.0 always means
-"one standard deviation above the cross-sectional average" regardless of the
-market environment.
+### Excel Reports
 
-### 2. Fama-MacBeth Regression Interpretation
-In Fama-MacBeth cross-sectional regressions (Step 3):
+| File | Module | Description |
+|------|--------|-------------|
+| `fama_macbeth_standard_momentum.xlsx` | `fama_macbeth.py` | FM regression results (Documentation + Data sheets) |
+| `ff3_residuals.xlsx` | `save_ff3_residuals.py` | FF3 residuals snapshot (Loser + Winner sheets) |
+| `pairwise_correlations.xlsx` | `save_pairwise_correlations.py` | Correlation matrices + long-format pairs |
+| `stocks_short_lived.xlsx` | `stock_diagnostics.py` | Short-lived stocks flagged |
+| `stocks_with_trading_gaps.xlsx` | `stock_diagnostics.py` | Gapped stocks flagged |
+| `combined_data_verification.xlsx` | `stock_diagnostics.py` | Combined diagnostics |
 
-```
-r_{i,t+1} = alpha_t + gamma_t * z_{i,t} + epsilon_{i,t+1}
-```
+### Plots
 
-When `z` is standardised, the slope `gamma_t` has a clean interpretation: the
-expected return difference per week between a stock that is **one standard
-deviation above** average momentum and an average-momentum stock. Without
-standardisation, `gamma` would mix the momentum effect with the time-varying
-scale of raw exposures.
+| File | Module | Description |
+|------|--------|-------------|
+| `plot_comom_event_study.png` | `plot_comom_event_study.py` | Two-panel event study (Figure 2) |
+| `momentum_results.png` | `performance.py` | Standard vs Adjusted comparison |
+| `plot1_universe_size.png` | `plot1_universe_size.py` | Stock universe over time |
+| `plot2_live_vs_dead.png` | `plot2_listed_vs_notlisted.py` | Listed vs not-listed |
+| `plot3_return_statistics.png` | `plot3_return_statistics.py` | Return statistics |
+| `plot4_return_distribution.png` | `plot4_return_distribution.py` | Return distribution |
+| `plot5_missing_data_by_year.png` | `plot5_missing_data.py` | Missing data heatmap |
+| `plot6_ff_cumulative_returns.png` | `plot6_ff_cumulative.py` | FF cumulative returns |
+| `step2_scatter_momentum_vs_return.png` | `step2_plots.py` | Momentum vs next-week return |
+| `step2_histogram_momentum.png` | `step2_plots.py` | Momentum distribution |
 
-### 3. Portfolio Construction
-Standardised exposures enable dollar-neutral long/short portfolios with consistent
-leverage. A stock with z = +2 gets twice the weight of z = +1, ensuring weights
-are proportional to **relative momentum rank**, not to raw cumulative return levels.
+### CSVs
 
-### 4. Comomentum Adjustment
-When multiplying the standardised momentum by a time-varying scaling factor
-(inverse comomentum signal in Step 5), the adjustment operates on a **unit-free
-quantity**, so the scaling has a uniform effect across all weeks.
+| File | Module | Description |
+|------|--------|-------------|
+| `momentum_raw_sample.csv` | `step2_outputs.py` | Sample of raw momentum matrix |
+| `momentum_standardised_sample.csv` | `step2_outputs.py` | Sample of standardised momentum |
+| `momentum_summary.csv` | `step2_outputs.py` | Cross-sectional summary stats |
 
-### 5. NaN Handling
-`nanmean` and `nanstd` ignore NaN entries (dead/delisted stocks), so the
-standardisation is computed only over stocks that are alive and have a valid
-momentum factor at each week. Dead stocks remain NaN after standardisation.
+### Logs
 
----
+| File | Module |
+|------|--------|
+| `data_loading.log` | `data_loader.py` |
+| `momentum_factor.log` | `compute_momentum_signal.py` |
 
-## Comomentum (Lou & Polk, 2021)
-
-Comomentum measures how correlated the **abnormal returns** of momentum stocks
-(winners and losers) are with each other. High comomentum signals crowded momentum
-trades, which predicts **weaker** future momentum returns. Low comomentum signals
-less crowding and predicts **stronger** future momentum returns.
-
-### Procedure (at each week t):
-1. Identify momentum stocks: top and bottom quintile by standardised momentum
-2. For each momentum stock, regress its last 52 weeks of returns on Fama-French
-   3 factors to obtain abnormal return residuals
-3. Compute pairwise correlations of residuals across all momentum stocks
-4. Comomentum = average of all upper-triangle pairwise correlations
-
-### Adjustment:
-```
-scaling_t = 2.0 - percentile_rank(comomentum_{t-1})
-```
-- Low comomentum (rank ~ 0) → scaling ~ 2.0 → increase momentum bet
-- High comomentum (rank ~ 1) → scaling ~ 1.0 → reduce momentum bet
-
-The percentile rank uses an **expanding window** to avoid look-ahead bias.
+All output files are written to `output_data/`.
 
 ---
 
@@ -219,16 +281,14 @@ pip install numpy pandas matplotlib scipy openpyxl
 
 ### Input Data
 
-Place the following files in the `input_data/` folder before running
-(files are excluded from the repo due to size — obtain from course materials):
+Place the following files in `input_data/` before running (obtain from course
+materials):
 
-| File | Description |
-|------|-------------|
-| `US_Returns.csv` | T×N weekly stock returns |
-| `US_live,csv.csv` | T×N live/dead dummies |
-| `US_Dates.xlsx` | T×1 weekly date labels |
-| `US_Names.xlsx` | 1×N stock ticker names |
-| `FamaFrench.csv` | T×4 Fama-French factors |
+- `US_Returns.csv`
+- `US_live,csv.csv`
+- `US_Dates.xlsx`
+- `US_Names.xlsx`
+- `FamaFrench.csv`
 
 ### Run
 
@@ -236,68 +296,17 @@ Place the following files in the `input_data/` folder before running
 python momentum_strategy.py
 ```
 
-All outputs (plots, CSVs, logs) are written to `output_data/`.
-
----
-
-## Pipeline Status
-
-| Step | Description | Status |
-|------|-------------|--------|
-| 1 | Load & validate all input data | ✅ Complete |
-| 2 | Compute standard momentum factor | ✅ Complete |
-| 3 | Fama-MacBeth on standard momentum | ⏳ In progress |
-| 4 | Compute comomentum (Lou & Polk, 2021) | ⏳ In progress |
-| 5 | Adjust momentum using inverse comomentum | ⏳ In progress |
-| 6 | Fama-MacBeth on adjusted momentum | ⏳ In progress |
-| 7 | Comparison plots & summary statistics | ⏳ In progress |
-
----
-
-## Output Files
-
-| File | Generated by | Description |
-|------|-------------|-------------|
-| `output_data/data_loading.log` | `data_loader.py` | Data validation log |
-| `output_data/momentum_factor.log` | `momentum_factor.py` | Factor computation log |
-| `output_data/plot1_universe_size.png` | `data_loader.py` | Stock universe over time |
-| `output_data/plot2_live_vs_dead.png` | `data_loader.py` | Live vs delisted stocks |
-| `output_data/plot3_return_statistics.png` | `data_loader.py` | Return stats over time |
-| `output_data/plot4_return_distribution.png` | `data_loader.py` | Return distribution |
-| `output_data/plot5_missing_data_by_year.png` | `data_loader.py` | Missing data heatmap |
-| `output_data/plot6_ff_cumulative_returns.png` | `data_loader.py` | FF factor cumulative returns |
-| `output_data/plot7_stock_lifespan.png` | `data_loader.py` | Stock lifespan histogram |
-| `output_data/plot8_summary_statistics.png` | `data_loader.py` | Summary statistics table |
-| `output_data/step2_scatter_momentum_vs_return.png` | `momentum_strategy.py` | Momentum vs next-week return |
-| `output_data/step2_histogram_momentum.png` | `momentum_strategy.py` | Momentum factor distribution |
-| `output_data/step2_factor_comparison.png` | `momentum_strategy.py` | 4-panel factor comparison |
-| `output_data/momentum_raw_sample.csv` | `momentum_strategy.py` | Sample of raw momentum matrix |
-| `output_data/momentum_standardised_sample.csv` | `momentum_strategy.py` | Sample of standardised matrix |
-| `output_data/momentum_summary.csv` | `momentum_strategy.py` | Cross-sectional summary stats |
-
----
-
-## Logging
-
-Each module writes a log file to `output_data/` (overwritten each run):
-
-| Module | Log file |
-|--------|----------|
-| `data_loader.py` | `output_data/data_loading.log` |
-| `momentum_factor.py` | `output_data/momentum_factor.log` |
-
-Logs are also printed to the console. Format:
-```
-YYYY-MM-DD HH:MM:SS | INFO    | message
-```
+All outputs are written to `output_data/`.
 
 ---
 
 ## References
 
-- Jegadeesh, N. & Titman, S. (1993). *Returns to Buying Winners and Selling Losers*.
-  Journal of Finance, 48(1), 65–91.
 - Lou, D. & Polk, C. (2021). *Comomentum: Inferring Arbitrage Activity from Return
   Correlations*. Review of Financial Studies, 35(7), 3272–3302.
+- Jegadeesh, N. & Titman, S. (1993). *Returns to Buying Winners and Selling Losers*.
+  Journal of Finance, 48(1), 65–91.
 - Fama, E. & MacBeth, J. (1973). *Risk, Return, and Equilibrium: Empirical Tests*.
   Journal of Political Economy, 81(3), 607–636.
+- Lewellen, J. & Nagel, S. (2006). *The Conditional CAPM Does Not Explain
+  Asset-Pricing Anomalies*. Journal of Financial Economics, 82(2), 289–314.
