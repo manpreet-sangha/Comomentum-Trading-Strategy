@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from standardiseFactor import standardiseFactor
+from Compute_Momentum.standardiseFactor import standardiseFactor
 
 def famaMacBethMulti(returns, factors):
 

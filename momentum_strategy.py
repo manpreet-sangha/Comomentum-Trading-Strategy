@@ -44,17 +44,20 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ── Import project modules ───────────────────────────────────────────
-from data_loader                import load_all_data
-from stock_diagnostics          import run_stock_diagnostics
-from compute_momentum_signal    import compute_momentum_signal
-from step2_outputs              import save_momentum_outputs
-from step2_plots                import generate_step2_plots
-from fama_macbeth               import famaMacBeth
-from compute_comomentum         import compute_comomentum
-from compute_adjusted_momentum  import compute_adjusted_momentum
-from save_ff3_residuals         import save_ff3_residuals
-from save_pairwise_correlations import save_pairwise_correlations
-from plot_comom_event_study     import plot_comom_event_study
+from data.data_loader                import load_all_data
+from compute_momentum.stock_diagnostics import run_stock_diagnostics
+from compute_momentum.compute_momentum_signal import compute_momentum_signal
+from compute_momentum.step2_outputs import save_momentum_outputs
+from compute_momentum.step2_plots   import generate_step2_plots
+from fama_macbeth.fama_macbeth   import famaMacBeth
+from comomentum.compute_comomentum import compute_comomentum
+from adjusted_momentum.compute_adjusted_momentum import compute_adjusted_momentum
+from comomentum.save_ff3_residuals import save_ff3_residuals
+from comomentum.save_pairwise_correlations import save_pairwise_correlations
+from comomentum.plot_comom_event_study import plot_comom_event_study
+from comomentum.plot_comom_time_series import plot_comom_time_series
+from data.market_variables import compute_market_variables
+from comomentum.summary_statistics_table import generate_summary_table
 from performance                import compute_stats, print_summary_table, plot_main_results
 
 # =====================================================================
@@ -108,7 +111,8 @@ generate_step2_plots(momentum, momentum_std, data)
 # =====================================================================
 # (3) FAMA-MACBETH ON STANDARD MOMENTUM
 #     Cross-sectional regression: r_{i,t} = α + γ * mom_{i,t-1} + ε
-#     γ_t is the factor return for week t.
+#     γ_t is the factor return for week t.  Momentum is used raw
+#     (no z-scoring) to replicate the paper as-is.
 # =====================================================================
 print("\n" + "=" * 70)
 print("  STEP 3: Fama-MacBeth regressions on STANDARD momentum")
@@ -155,6 +159,28 @@ plot_comom_event_study(
     comomentum, data['dates'],
     max_years=4,
     save_path='output_data/plot_comom_event_study.png'
+)
+plot_comom_time_series(
+    comomentum, comom_winner, comom_loser, data['dates'],
+    sample_months=6,
+    save_path='output_data/plot_comom_time_series.png'
+)
+
+# ── Market variables for Table I summary statistics ──────────────────
+mret, mvol = compute_market_variables(
+    data['ff_factors'], data['rf'], data['dates']
+)
+n_valid_mret = int(np.sum(np.isfinite(mret)))
+n_valid_mvol = int(np.sum(np.isfinite(mvol)))
+print(f"  MRET: {n_valid_mret} valid values, "
+      f"mean={np.nanmean(mret):.4f}")
+print(f"  MVOL: {n_valid_mvol} valid values, "
+      f"mean={np.nanmean(mvol):.4f}")
+
+# ── Summary statistics table (Table I) ─────────────────────────────────
+generate_summary_table(
+    comomentum, comom_winner, comom_loser, mret, mvol, data['dates'],
+    save_path='output_data/summary_statistics_table.png'
 )
 
 # =====================================================================
