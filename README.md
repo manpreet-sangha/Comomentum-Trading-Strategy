@@ -6,7 +6,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![GitHub repo](https://img.shields.io/badge/GitHub-momentum__trading__strategy-black?logo=github)](https://github.com/manpreet-sangha/momentum_trading_strategy)
+[![GitHub repo](https://img.shields.io/badge/GitHub-Comomentum--Trading--Strategy-black?logo=github)](https://github.com/manpreet-sangha/Comomentum-Trading-Strategy)
 
 ---
 
@@ -297,6 +297,22 @@ python momentum_strategy.py
 ```
 
 All outputs are written to `output_data/`.
+
+---
+
+## Disclaimer
+
+### AI Assistance
+
+This project was developed with the assistance of AI tools (GitHub Copilot). AI was used to support coding, debugging, and documentation throughout the development process. All outputs were reviewed, validated, and approved by the author. The academic analysis, methodology decisions, and interpretation of results are the author's own.
+
+### Academic Integrity — Do Not Copy
+
+> **⚠️ This repository is published for reference and transparency only.**
+>
+> This work was submitted as assessed coursework for **SMM282 Quantitative Trading** at **City St George's, University of London**. **Do not copy, reproduce, or submit any part of this material as your own work.** Doing so constitutes **academic misconduct** and may result in disciplinary action under your institution's regulations.
+>
+> If you find this project useful for learning, you are welcome to study the methodology and code structure, but you must produce your own original implementation.
 
 ---
 
