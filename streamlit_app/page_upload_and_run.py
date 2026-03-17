@@ -404,8 +404,15 @@ def _run_pipeline(project_root: str, status_container, progress_bar,
                                r"\*, \*\*, \*\*\* denote significance at 10%, 5%, 1%.")
                 st.divider()
                 st.markdown("##### Output Files")
-                _show_table(os.path.join(output_dir, "ff3_residuals.xlsx"),
-                            "ff3_residuals.xlsx")
+                _ff3_path = os.path.join(output_dir, "ff3_residuals.xlsx")
+                if os.path.isfile(_ff3_path):
+                    for _sheet in ("Loser_Residuals", "Winner_Residuals"):
+                        _df_sheet = pd.read_excel(_ff3_path, sheet_name=_sheet)
+                        st.markdown(f"**ff3_residuals.xlsx — {_sheet}**  ({len(_df_sheet):,} rows)")
+                        _row_h, _hdr_h, _max_v = 35, 38, 20
+                        _vis = min(len(_df_sheet), _max_v)
+                        st.dataframe(_df_sheet, use_container_width=True,
+                                     height=_hdr_h + _row_h * _vis + 2)
                 _show_table(os.path.join(output_dir, "pairwise_correlations.xlsx"),
                             "pairwise_correlations.xlsx")
 
