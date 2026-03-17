@@ -1,0 +1,46 @@
+Item,Details
+PAIRWISE ABNORMAL CORRELATION MATRICES — STEP 4 SNAPSHOT,
+,
+Snapshot week index,1512
+Snapshot date,2020-12-25
+Rolling window,2020-01-03 to 2020-12-25 (52 weeks)
+,
+"METHODOLOGY (Lou & Polk, 2021):",
+  1. Sort all live stocks with valid momentum into deciles.,
+"  2. For each loser/winner stock, regress its 52-week returns on FF3 factors (Mkt-RF, SMB, HML) → collect residuals.",
+"  3. Compute Corr(resid_i, resid_j) for every unique pair (i, j) within each decile.",
+  4. CoMOM_decile = mean of all K*(K-1)/2 pairwise correlations.,
+  5. CoMOM = 0.5 * (CoMOM_winners + CoMOM_losers).,
+,
+LOSER DECILE,
+  Criterion,Bottom 10% of momentum scores
+  N stocks in decile,171
+  N eligible (≥52 valid weeks),171
+  N unique pairs,14535
+  Mean pairwise correlation (= CoMOM_L),0.065522
+,
+WINNER DECILE,
+  Criterion,Top 10% of momentum scores
+  N stocks in decile,171
+  N eligible (≥52 valid weeks),171
+  N unique pairs,14535
+  Mean pairwise correlation (= CoMOM_W),0.044917
+,
+COMOMENTUM,0.055220
+  = 0.5 * (CoMOM_W + CoMOM_L),
+,
+SHEET: Loser_CorrMatrix,
+  Shape,171 x 171
+  Values,Pearson correlation of FF3 residuals between each pair of loser-decile stocks. Diagonal = 1.0.
+,
+SHEET: Winner_CorrMatrix,
+  Shape,171 x 171
+  Values,"Same, for winner-decile stocks."
+,
+SHEET: Loser_Pairwise,
+  Columns,"stock_i, stock_j, correlation"
+  Rows,All 14535 unique pairs (i < j) in the loser decile.
+,
+SHEET: Winner_Pairwise,
+  Columns,"stock_i, stock_j, correlation"
+  Rows,All 14535 unique pairs in the winner decile.

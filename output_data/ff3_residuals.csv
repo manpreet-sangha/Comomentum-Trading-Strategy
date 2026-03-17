@@ -1,0 +1,29 @@
+Item,Details
+FF3 REGRESSION RESIDUALS — STEP 4 SNAPSHOT,
+,
+Snapshot week index,1512
+Snapshot date,2020-12-25
+Rolling window,2020-01-03 to 2020-12-25 (52 weeks)
+,
+"REGRESSION MODEL (per stock, over the 52-week window):",
+"  r_i,w = alpha_i + beta_MKT * MktRF_w + beta_SMB * SMB_w + beta_HML * HML_w + epsilon_i,w",
+"  Residual = epsilon_i,w = r_i,w − fitted values",
+,
+Loser decile,Bottom 10% of momentum scores
+Winner decile,Top 10% of momentum scores
+N losers,171
+N winners,171
+N valid stocks at this date,1702
+,
+SHEET: Loser_Residuals,
+  Rows,52 weeks (2020-01-03 to 2020-12-25)
+  Columns,One per loser-decile stock (labelled by stock name)
+  Values,FF3 regression residual (decimal weekly return). NaN means that stock did not have a valid return in that week or failed the minimum-observations filter.
+,
+SHEET: Winner_Residuals,
+  Rows,52 weeks
+  Columns,One per winner-decile stock
+  Values,Same as Loser_Residuals
+,
+PURPOSE,
+,"These residuals are the 'abnormal returns' stripped of Fama-French three-factor exposure. They are used to compute pairwise correlations within each decile, which are then averaged to produce the comomentum measure (Lou & Polk, 2021)."
