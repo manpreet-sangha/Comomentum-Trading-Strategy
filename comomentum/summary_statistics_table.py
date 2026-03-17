@@ -199,6 +199,20 @@ def generate_summary_table(comomentum, comom_winner, comom_loser,
     plt.show()
     print(f"  Saved: {save_path}")
 
+    # ── Return DataFrames for programmatic use ───────────────────────
+    df_panel_a = pd.DataFrame(
+        panel_a_rows, columns=['Variable', 'N', 'Mean', 'Std. Dev.', 'Min', 'Max']
+    )
+    df_panel_b = pd.DataFrame(
+        panel_b_rows, columns=[''] + var_names
+    )
+    ac_col_plain = [''] + all_ac_names
+    df_panel_c = pd.DataFrame(
+        panel_c_rows, columns=ac_col_plain
+    )
+
+    return df_panel_a, df_panel_b, df_panel_c
+
 
 # =====================================================================
 # Standalone execution

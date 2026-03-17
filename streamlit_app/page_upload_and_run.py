@@ -340,11 +340,11 @@ def _run_pipeline(project_root: str, status_container, progress_bar,
         mret, mvol = compute_market_variables(
             data['ff_factors'], data['rf'], data['dates']
         )
-        generate_summary_table(
+        table1_panels = generate_summary_table(
             comomentum_arr, comom_winner, comom_loser, mret, mvol, data['dates'],
             save_path=os.path.join(output_dir, 'summary_statistics_table.png')
         )
-        generate_determinants_table(
+        table2_result = generate_determinants_table(
             comomentum_arr, gamma_std, mret, mvol, data['dates'],
             save_path=os.path.join(output_dir, 'determinants_table.png')
         )
@@ -363,10 +363,51 @@ def _run_pipeline(project_root: str, status_container, progress_bar,
                             "Comomentum Time Series")
                 _show_image(os.path.join(output_dir, "plot_comom_event_study.png"),
                             "Comomentum Event Study")
-                _show_image(os.path.join(output_dir, "summary_statistics_table.png"),
-                            "Summary Statistics (Table I)")
-                _show_image(os.path.join(output_dir, "determinants_table.png"),
-                            "Determinants of Comomentum (Table II)")
+                # ── Table I: Summary Statistics ─────────────────────
+                st.markdown("#### Table I — Summary Statistics")
+                if table1_panels is not None:
+                    _pa, _pb, _pc = table1_panels
+                    st.caption("**Panel A: Summary Statistics**")
+                    st.table(_pa.set_index('Variable'))
+                    st.caption("**Panel B: Correlation**")
+                    st.table(_pb.set_index(_pb.columns[0]))
+                    st.caption("**Panel C: Autocorrelation**")
+                    st.table(_pc.set_index(_pc.columns[0]))
+
+                # ── Table II: Determinants of Comomentum ─────────────
+                st.markdown("#### Table II — Determinants of Comomentum")
+                st.caption("DepVar = Detrended CoMOM\u209C")
+                if table2_result is not None:
+                    _results, _all_regs, _disp = table2_result
+                    _t2_rows = []
+                    for rk in _all_regs:
+                        _dn = _disp[rk].replace('$_{t-1}$', '\u209C\u208B\u2081')
+                        _coef_vals = {}
+                        _se_vals = {}
+                        for sname, svars, res in _results:
+                            if res and rk in res['coefs']:
+                                p = res['pvals'][rk]
+                                stars = '***' if p < 0.01 else '**' if p < 0.05 else '*' if p < 0.10 else ''
+                                _coef_vals[sname] = f"{res['coefs'][rk]:.3f}{stars}"
+                                _se_vals[sname] = f"[{res['se'][rk]:.3f}]"
+                            else:
+                                _coef_vals[sname] = ''
+                                _se_vals[sname] = ''
+                        _t2_rows.append({'': _dn, **_coef_vals})
+                        _t2_rows.append({'': '', **_se_vals})
+                    # Adj-R² and N
+                    _r2 = {'': 'Adj-R\u00B2'}
+                    _nobs = {'': 'No. Obs.'}
+                    for sname, svars, res in _results:
+                        _r2[sname] = f"{res['adj_r2']:.2f}" if res else ''
+                        _nobs[sname] = f"{res['nobs']}" if res else ''
+                    _t2_rows.append({'': '', **{s[0]: '' for s in _results}})
+                    _t2_rows.append(_r2)
+                    _t2_rows.append(_nobs)
+                    _t2_df = pd.DataFrame(_t2_rows).set_index('')
+                    st.table(_t2_df)
+                    st.caption(r"Newey-West standard errors (12 lags) in brackets. "
+                               r"\*, \*\*, \*\*\* denote significance at 10%, 5%, 1%.")
                 st.divider()
                 st.markdown("##### Output Files")
                 _show_table(os.path.join(output_dir, "ff3_residuals.xlsx"),

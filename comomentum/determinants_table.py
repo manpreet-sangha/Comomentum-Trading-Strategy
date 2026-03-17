@@ -297,6 +297,9 @@ def generate_determinants_table(comomentum, gamma_std, mret, mvol, dates,
     plt.show()
     print(f"  Saved: {save_path}")
 
+    # ── Return results for programmatic use ──────────────────────────
+    return results, all_regressors, display_names
+
 
 # =====================================================================
 # Standalone execution
