@@ -85,7 +85,7 @@ def render(project_root: str) -> None:
         heading = f"{fname}  —  {desc}  ({total_rows:,} × {total_cols:,})"
 
         bar.progress(0.7, text=f"Rendering {fname}…")
-        with st.expander(heading, expanded=False):
+        with st.expander(heading, expanded=True):
             html = df_preview.to_html(index=False, header=False, na_rep="")
             del df_preview
             st.markdown(

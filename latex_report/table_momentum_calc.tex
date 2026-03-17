@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+\centering
+\caption{Momentum factor calculation windows. Lookback = 48 weeks, skip = 4 weeks, total history = 52 weeks. Scored weeks: 1,462 (weeks 52--1513).}
+\label{tab:momentum_calc}
+\small
+\begin{tabular}{r l l l l}
+\toprule
+    Week & Lookback Start & Lookback End & Skipped Obs & Calculation Date \\
+\midrule
+    52 & 1992-01-03 & 1992-11-27 & 4 (1992-12-04 -- 1992-12-25) & 1992-12-25 \\
+    53 & 1992-01-10 & 1992-12-04 & 4 (1992-12-11 -- 1993-01-01) & 1993-01-01 \\
+    54 & 1992-01-17 & 1992-12-11 & 4 (1992-12-18 -- 1993-01-08) & 1993-01-08 \\
+    55 & 1992-01-24 & 1992-12-18 & 4 (1992-12-25 -- 1993-01-15) & 1993-01-15 \\
+    56 & 1992-01-31 & 1992-12-25 & 4 (1993-01-01 -- 1993-01-22) & 1993-01-22 \\
+    \multicolumn{5}{c}{$\vdots$} \\
+    1511 & 2019-12-20 & 2020-11-13 & 4 (2020-11-20 -- 2020-12-11) & 2020-12-11 \\
+    1512 & 2019-12-27 & 2020-11-20 & 4 (2020-11-27 -- 2020-12-18) & 2020-12-18 \\
+    1513 & 2020-01-03 & 2020-11-27 & 4 (2020-12-04 -- 2020-12-25) & 2020-12-25 \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+\begin{flushleft}
+\footnotesize
+\textit{Note.} The lookback window spans 48 weeks of compounded returns (indices $t-51$ to $t-4$). The 4 most recent weeks (indices $t-3$ to $t$) are skipped to avoid short-term reversal contamination.
+\end{flushleft}
+\end{table}

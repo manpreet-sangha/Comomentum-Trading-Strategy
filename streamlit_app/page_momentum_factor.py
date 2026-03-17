@@ -145,7 +145,7 @@ def render(project_root: str) -> None:
     col_d.metric("Std (raw)", f"{np.std(all_valid) * 100:.2f}%")
 
     # ── Weekly summary table ────────────────────────────────────────
-    with st.expander("Weekly Cross-Sectional Summary", expanded=False):
+    with st.expander("Weekly Cross-Sectional Summary", expanded=True):
         st.markdown(
             "Weekly statistics across all stocks: number of valid scores, "
             "mean, median, standard deviation, min and max of raw momentum."
@@ -157,17 +157,6 @@ def render(project_root: str) -> None:
     output_dir = os.path.join(project_root, "output_data")
 
     _PLOT_INFO = [
-        (
-            "step2_scatter_momentum_vs_return.png",
-            "Momentum Exposure vs Next-Week Return",
-            "Scatter plot of raw momentum at week *t* against the "
-            "realised stock return at week *t+1*. A subsample of 50,000 "
-            "observations is shown with an OLS fit line. The near-zero slope "
-            "reflects the well-known difficulty of predicting individual "
-            "stock returns — the momentum effect is small in magnitude and "
-            "only becomes economically meaningful when aggregated across "
-            "a large portfolio of stocks over many weeks.",
-        ),
         (
             "step2_histogram_momentum.png",
             "Distribution of Momentum",
@@ -189,7 +178,7 @@ def render(project_root: str) -> None:
         png_path = os.path.join(output_dir, png_name)
         if not os.path.isfile(png_path):
             continue
-        with st.expander(title, expanded=False):
+        with st.expander(title, expanded=True):
             st.markdown(description)
             st.image(png_path, use_container_width=True)
 
@@ -199,5 +188,5 @@ def render(project_root: str) -> None:
     if os.path.isfile(log_path):
         with open(log_path, "r", encoding="utf-8") as f:
             log_text = "\n".join(reversed(f.read().splitlines()))
-        with st.expander("View full log", expanded=False):
+        with st.expander("View full log", expanded=True):
             st.code(log_text, language="text")

@@ -1,0 +1,52 @@
+\begin{table}[htbp]
+\centering
+\caption{Summary statistics, correlations, and autocorrelations of comomentum and market variables}
+\label{tab:summary_statistics}
+\small
+
+% --- Panel A ---
+\textbf{Panel A: Summary Statistics}\\[4pt]
+\begin{tabular}{l r r r r r}
+\toprule
+    Variable & N & Mean & Std.\ Dev. & Min & Max \\
+\midrule
+    CoMOM & 1,462 & 0.040 & 0.020 & 0.007 & 0.123 \\
+    $\text{CoMOM}_{L}$ & 1,462 & 0.042 & 0.028 & -0.005 & 0.154 \\
+    $\text{CoMOM}_{W}$ & 1,462 & 0.038 & 0.023 & 0.004 & 0.162 \\
+    MRET & 1,410 & 0.238 & 0.267 & -0.486 & 1.068 \\
+    MVOL & 1,413 & 0.042 & 0.015 & 0.021 & 0.072 \\
+\bottomrule
+\end{tabular}
+\vspace{12pt}
+
+% --- Panel B ---
+\textbf{Panel B: Correlation}\\[4pt]
+\begin{tabular}{l r r r r r}
+\toprule
+     & CoMOM & $\text{CoMOM}_{L}$ & $\text{CoMOM}_{W}$ & MRET & MVOL \\
+\midrule
+    CoMOM & 1.000 &  &  &  &  \\
+    $\text{CoMOM}_{L}$ & 0.827 & 1.000 &  &  &  \\
+    $\text{CoMOM}_{W}$ & 0.732 & 0.223 & 1.000 &  &  \\
+    MRET & -0.492 & -0.418 & -0.357 & 1.000 &  \\
+    MVOL & 0.288 & 0.317 & 0.116 & -0.521 & 1.000 \\
+\bottomrule
+\end{tabular}
+\vspace{12pt}
+
+% --- Panel C ---
+\textbf{Panel C: Autocorrelation} (29 years)\\[4pt]
+\begin{tabular}{l r r r r r r}
+\toprule
+     & $\text{CoMOM}_{t}$ & $\text{CoMOM}_{L,t}$ & $\text{CoMOM}_{W,t}$ & $\text{CoMOM}_{t+1}$ & $\text{CoMOM}_{L,t+1}$ & $\text{CoMOM}_{W,t+1}$ \\
+\midrule
+    $\text{CoMOM}_{t}$ & 1.000 &  &  &  &  &  \\
+    $\text{CoMOM}_{L,t}$ & 0.256 & 1.000 &  &  &  &  \\
+    $\text{CoMOM}_{W,t}$ & 0.889 & 0.255 & 1.000 &  &  &  \\
+    $\text{CoMOM}_{t+1}$ & 0.206 & 0.888 & 0.235 & 1.000 &  &  \\
+    $\text{CoMOM}_{L,t+1}$ & 0.734 & 0.147 & 0.341 & 0.076 & 1.000 &  \\
+    $\text{CoMOM}_{W,t+1}$ & 0.216 & 0.726 & 0.172 & 0.328 & 0.188 & 1.000 \\
+\bottomrule
+\end{tabular}
+
+\end{table}

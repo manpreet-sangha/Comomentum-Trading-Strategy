@@ -1,0 +1,32 @@
+\begin{table}[ht]
+\centering
+\caption{Data loading summary}
+\label{tab:loading_summary}
+\small
+\begin{tabular}{l l}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+\multicolumn{2}{l}{\textit{Dataset Dimensions}} \\[2pt]
+Period & 1992-01-03 to 2020-12-25 \\
+Weeks ($T$) & 1,513 \\
+Stocks ($N$) & 7,261 \\
+Total cells ($T \times N$) & 10,985,893 \\
+\addlinespace
+\multicolumn{2}{l}{\textit{Input Files}} \\[2pt]
+US\_Returns.csv & $1,513 \times 7,261$ \,|\, 1992-01-03 to 2020-12-25 \\
+US\_live.csv & $1,513 \times 7,261$ \,|\, 1992-01-03 to 2020-12-25 \\
+US\_Dates.xlsx & 1,513 dates \,|\, 1992-01-03 to 2020-12-25 \\
+US\_Names.xlsx & 7,261 stock names \\
+FamaFrench.csv & $1,513 \times 4$ \,|\, 1992-01-03 to 2020-12-25 \\
+\addlinespace
+\multicolumn{2}{l}{\textit{Cleaning Breakdown}} \\[2pt]
+Listed cells (live$=1$) & 2,802,330 (25.5\%) \\
+\quad with valid return & 2,783,222 \\
+\quad NaN (data gaps) & 19,108 \\
+Not-listed cells (live$=0$) & 8,183,563 (74.5\%) \\
+\quad already NaN in raw file & 8,183,563 \\
+\quad numeric value $\to$ NaN & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}

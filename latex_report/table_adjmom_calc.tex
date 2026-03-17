@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+\centering
+\caption{Adjusted momentum calculation windows. Minimum past CoMOM values for percentile rank: 10. Valid weeks: 1,461.}
+\label{tab:adjmom_calc}
+\small
+\begin{tabular}{r l r l}
+\toprule
+    Week & Date & Past CoMOM obs. & $\gamma^{\text{adj}}_t$ Date \\
+\midrule
+    53 & 1993-01-01 & 1 & 1993-01-01 \\
+    54 & 1993-01-08 & 2 & 1993-01-08 \\
+    55 & 1993-01-15 & 3 & 1993-01-15 \\
+    56 & 1993-01-22 & 4 & 1993-01-22 \\
+    57 & 1993-01-29 & 5 & 1993-01-29 \\
+    \multicolumn{4}{c}{$\vdots$} \\
+    1511 & 2020-12-11 & 1459 & 2020-12-11 \\
+    1512 & 2020-12-18 & 1460 & 2020-12-18 \\
+    1513 & 2020-12-25 & 1461 & 2020-12-25 \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+\begin{flushleft}
+\footnotesize
+\textit{Note.} At each week $t$, the percentile rank of $\text{CoMOM}_t$ is computed relative to all past values $\text{CoMOM}_{1}, \ldots, \text{CoMOM}_{t-1}$ (expanding window, minimum 10 observations). The scaling factor is $s_t = 2 - \text{PctRank}_{t-1}$, mapping to the range $[1, 2]$. Adjusted factor return: $\gamma^{\text{adj}}_t = s_t \cdot \gamma_t$.
+\end{flushleft}
+\end{table}

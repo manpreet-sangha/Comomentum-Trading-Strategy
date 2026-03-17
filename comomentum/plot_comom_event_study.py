@@ -114,65 +114,76 @@ def plot_comom_event_study(comomentum, dates,
         label = f"Year {y:+d}" if y != 0 else "Year  0"
         print(f"  {label:>10}  {a_all:9.6f}  {a_hi:9.6f}  {a_lo:9.6f}")
 
-    # ── Create two-panel figure ──────────────────────────────────────
-    x_labels = [f"Year {y}" for y in rel_years]
+    # ── Create two separate compact figures ────────────────────────────
+    x_labels = [f"{y:+d}" for y in rel_years]
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 11))
+    # ────────── PANEL A: Avg COMOM ───────────────────────────────────
+    fig1, ax1 = plt.subplots(figsize=(6, 4))
 
-    # ────────── TOP PANEL: Avg COMOM ─────────────────────────────────
     ax1.plot(rel_years, avg_comom,
              color='black', linewidth=2,
-             marker='o', markersize=7,
+             marker='o', markersize=5,
              markerfacecolor='black', markeredgecolor='black',
-             zorder=3, label='Avg COMOM')
+             zorder=3, label='Avg CoMOM')
 
     ax1.set_xlim(-max_years - 0.5, max_years + 0.5)
     ax1.set_xticks(rel_years)
-    ax1.set_xticklabels(x_labels, fontsize=11)
+    ax1.set_xticklabels(x_labels, fontsize=9)
+    ax1.set_xlabel('Year relative to formation', fontsize=10)
+    ax1.set_ylabel('Average CoMOM', fontsize=10)
 
     y_max_1 = max(0.10, np.nanmax(avg_comom) * 1.15)
     ax1.set_ylim(0, y_max_1)
     ax1.set_yticks(np.arange(0, y_max_1 + 0.005, 0.01))
     ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f'{v:.2f}'))
 
-    ax1.legend(loc='lower center', fontsize=11, frameon=True,
-               bbox_to_anchor=(0.5, -0.13))
+    ax1.legend(loc='upper right', fontsize=9, frameon=True)
     ax1.spines['top'].set_visible(False)
     ax1.spines['right'].set_visible(False)
     ax1.grid(axis='y', linestyle='--', alpha=0.3)
 
-    # ────────── BOTTOM PANEL: High vs Low COMOM ──────────────────────
+    fig1.tight_layout()
+    path_a = save_path.replace('.png', '_a.png')
+    fig1.savefig(path_a, dpi=300, bbox_inches='tight')
+    plt.close(fig1)
+    print(f"  Saved: {path_a}")
+
+    # ────────── PANEL B: High vs Low COMOM ───────────────────────────
+    fig2, ax2 = plt.subplots(figsize=(6, 4))
+
     ax2.plot(rel_years, avg_high,
              color='#C0392B', linewidth=2,
-             marker='o', markersize=7,
+             marker='o', markersize=5,
              markerfacecolor='#C0392B', markeredgecolor='#C0392B',
-             zorder=3, label='High COMOM')
+             zorder=3, label='High CoMOM')
 
     ax2.plot(rel_years, avg_low,
              color='#7F8C8D', linewidth=2, linestyle='--',
-             marker='s', markersize=7,
+             marker='s', markersize=5,
              markerfacecolor='#7F8C8D', markeredgecolor='#7F8C8D',
-             zorder=3, label='Low COMOM')
+             zorder=3, label='Low CoMOM')
 
     ax2.set_xlim(-max_years - 0.5, max_years + 0.5)
     ax2.set_xticks(rel_years)
-    ax2.set_xticklabels(x_labels, fontsize=11)
+    ax2.set_xticklabels(x_labels, fontsize=9)
+    ax2.set_xlabel('Year relative to formation', fontsize=10)
+    ax2.set_ylabel('Average CoMOM', fontsize=10)
 
     y_max_2 = max(0.16, np.nanmax(avg_high) * 1.15)
     ax2.set_ylim(0, y_max_2)
     ax2.set_yticks(np.arange(0, y_max_2 + 0.005, 0.02))
     ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f'{v:.2f}'))
 
-    ax2.legend(loc='lower center', fontsize=11, frameon=True,
-               bbox_to_anchor=(0.5, -0.13), ncol=2)
+    ax2.legend(loc='upper right', fontsize=9, frameon=True, ncol=1)
     ax2.spines['top'].set_visible(False)
     ax2.spines['right'].set_visible(False)
     ax2.grid(axis='y', linestyle='--', alpha=0.3)
 
-    plt.tight_layout(h_pad=4.0)
-    plt.savefig(save_path, dpi=150, bbox_inches='tight')
-    plt.show()
-    print(f"\n  Saved: {save_path}")
+    fig2.tight_layout()
+    path_b = save_path.replace('.png', '_b.png')
+    fig2.savefig(path_b, dpi=300, bbox_inches='tight')
+    plt.close(fig2)
+    print(f"  Saved: {path_b}")
 
     return rel_years, avg_comom.tolist()
 

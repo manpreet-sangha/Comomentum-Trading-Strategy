@@ -45,10 +45,18 @@ warnings.filterwarnings('ignore')
 
 # ── Import project modules ───────────────────────────────────────────
 from data.data_loader                import load_all_data
+from data.loading_summary_latex      import generate_loading_summary_latex
 from compute_momentum.stock_diagnostics import run_stock_diagnostics
 from compute_momentum.compute_momentum_signal import compute_momentum_signal
 from compute_momentum.step2_outputs import save_momentum_outputs
 from compute_momentum.step2_plots   import generate_step2_plots
+from compute_momentum.momentum_factor_latex import generate_momentum_factor_table_latex
+from appendix_tables_latex import (
+    generate_comomentum_windows_latex,
+    generate_market_variables_windows_latex,
+    generate_famamacbeth_windows_latex,
+    generate_adjusted_momentum_windows_latex,
+)
 from fama_macbeth.fama_macbeth   import famaMacBeth
 from comomentum.compute_comomentum import compute_comomentum
 from adjusted_momentum.compute_adjusted_momentum import compute_adjusted_momentum
@@ -58,12 +66,19 @@ from comomentum.plot_comom_event_study import plot_comom_event_study
 from comomentum.plot_comom_time_series import plot_comom_time_series
 from data.market_variables import compute_market_variables
 from comomentum.summary_statistics_table import generate_summary_table
+from comomentum.summary_statistics_latex import generate_summary_table_latex
+from comomentum.determinants_table import generate_determinants_table
+from comomentum.determinants_table_latex import generate_determinants_table_latex
 from performance                import compute_stats, print_summary_table, plot_main_results
+from performance_table_latex    import generate_performance_table_latex
 
 # =====================================================================
 # (1) LOAD DATA
 # =====================================================================
 data = load_all_data(datadir='input_data/')
+
+# ── Data loading summary (LaTeX) ─────────────────────────────────────
+generate_loading_summary_latex(data, save_path='latex_report/table_loading.tex')
 
 # =====================================================================
 # (1b) STOCK DIAGNOSTICS — flag & exclude problematic stocks
@@ -98,6 +113,11 @@ for j in exclude_idx:
 # =====================================================================
 momentum, momentum_std = compute_momentum_signal(
     data['returns_clean'], data['dates']
+)
+
+# ── Momentum factor calculation windows (LaTeX) ─────────────────────
+generate_momentum_factor_table_latex(
+    data['dates'], save_path='latex_report/table_momentum_calc.tex'
 )
 
 # ── Save momentum CSVs ──────────────────────────────────────────────
@@ -182,6 +202,20 @@ generate_summary_table(
     comomentum, comom_winner, comom_loser, mret, mvol, data['dates'],
     save_path='output_data/summary_statistics_table.png'
 )
+generate_summary_table_latex(
+    comomentum, comom_winner, comom_loser, mret, mvol, data['dates'],
+    save_path='latex_report/table1.tex'
+)
+
+# ── Determinants of Comomentum (Table II) ──────────────────────────────
+generate_determinants_table(
+    comomentum, gamma_std, mret, mvol, data['dates'],
+    save_path='output_data/determinants_table.png'
+)
+generate_determinants_table_latex(
+    comomentum, gamma_std, mret, mvol, data['dates'],
+    save_path='latex_report/table2.tex'
+)
 
 # =====================================================================
 # (5) ADJUST MOMENTUM USING INVERSE COMOMENTUM
@@ -203,6 +237,24 @@ print(f"  Scaling factor: mean={np.nanmean(scaling):.4f}, "
 print(f"  gamma_std mean={np.nanmean(gamma_std)*100:.4f}%  →  "
       f"gamma_adj mean={np.nanmean(gamma_adj)*100:.4f}%")
 
+# ── Appendix: all remaining calculation-window tables ────────────────
+generate_comomentum_windows_latex(
+    comomentum, data['dates'],
+    save_path='latex_report/table_comom_calc.tex'
+)
+generate_market_variables_windows_latex(
+    mret, mvol, data['dates'],
+    save_path='latex_report/table_mktvar_calc.tex'
+)
+generate_famamacbeth_windows_latex(
+    gamma_std, data['dates'],
+    save_path='latex_report/table_fm_calc.tex'
+)
+generate_adjusted_momentum_windows_latex(
+    comomentum, gamma_adj, data['dates'],
+    save_path='latex_report/table_adjmom_calc.tex'
+)
+
 # =====================================================================
 # (6) COMPARISON: Summary statistics & plots
 #     (Steps 5+6 combined: scaling already applied to gamma_std)
@@ -214,6 +266,11 @@ print("=" * 70)
 stats_std = compute_stats(gamma_std, label='Standard Momentum')
 stats_adj = compute_stats(gamma_adj, label='Adjusted Momentum')
 print_summary_table(stats_std, stats_adj)
+
+generate_performance_table_latex(
+    stats_std, stats_adj,
+    save_path='latex_report/table_performance.tex'
+)
 
 plot_main_results(
     data['dates'], gamma_std, gamma_adj, comomentum, scaling,

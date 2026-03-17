@@ -223,15 +223,10 @@ def generate_step2_plots(momentum, momentum_std, data,
     log.info("STEP 2 PLOTS: Generating momentum diagnostics")
     log.info("=" * 60)
 
-    log.info("  Chart 1: Scatter (momentum vs next-week return)...")
-    plot_scatter_momentum_vs_return(
-        momentum_std, data['returns_clean'], data['live'], output_dir
-    )
-
-    log.info("  Chart 2: Histogram of momentum exposures...")
+    log.info("  Chart 1: Histogram of momentum exposures...")
     plot_histogram_momentum(momentum_std, data['dates'], output_dir)
 
-    log.info("  Chart 3: Factor comparison over time (4-panel)...")
+    log.info("  Chart 2: Factor comparison over time (4-panel)...")
     plot_factor_comparison(
         momentum, momentum_std, data['dates'], data['T'], output_dir
     )

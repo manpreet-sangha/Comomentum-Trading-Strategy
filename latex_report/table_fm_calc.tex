@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+\centering
+\caption{Fama--MacBeth cross-sectional regression windows. Valid weeks: 1,461.}
+\label{tab:fm_calc}
+\small
+\begin{tabular}{r l l l}
+\toprule
+    Week & Factor Date ($t{-}1$) & Return Date ($t$) & $\gamma_t$ Date \\
+\midrule
+    53 & 1992-12-25 & 1993-01-01 & 1993-01-01 \\
+    54 & 1993-01-01 & 1993-01-08 & 1993-01-08 \\
+    55 & 1993-01-08 & 1993-01-15 & 1993-01-15 \\
+    56 & 1993-01-15 & 1993-01-22 & 1993-01-22 \\
+    57 & 1993-01-22 & 1993-01-29 & 1993-01-29 \\
+    \multicolumn{4}{c}{$\vdots$} \\
+    1511 & 2020-12-04 & 2020-12-11 & 2020-12-11 \\
+    1512 & 2020-12-11 & 2020-12-18 & 2020-12-18 \\
+    1513 & 2020-12-18 & 2020-12-25 & 2020-12-25 \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+\begin{flushleft}
+\footnotesize
+\textit{Note.} At each week $t$, a cross-sectional OLS regression $r_{i,t} = \alpha_t + \gamma_t \, \text{MOM}^{*}_{i,t-1} + \varepsilon_{i,t}$ is run across all eligible stocks. The momentum exposure is lagged by one week. A minimum of 3 valid stocks is required per cross-section.
+\end{flushleft}
+\end{table}

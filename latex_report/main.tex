@@ -1,0 +1,415 @@
+\documentclass[10pt]{article}
+
+% Full-width formatting
+\usepackage[a4paper, margin=1in]{geometry}
+
+% Arial-like font
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+\usepackage{graphicx}
+\usepackage{pdfpages}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{wrapfig}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage[natbibapa]{apacite}
+\AtBeginDocument{\renewcommand{\BRetrievedFrom}{}\renewcommand{\doiprefix}{}}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% Header and footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small SMM282 Quantitative Trading Group1}
+\fancyfoot[L]{\small SMM282 Quantitative Trading Group1}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\begin{document}
+
+% --- FIRST PAGE (PDF form) ---
+\includepdf[pages=1, pagecommand={}, fitpaper=true]{Group Coursework Submission Form.pdf}
+
+% --- ABSTRACT ON ITS OWN PAGE (no page number) ---
+\newpage
+\thispagestyle{empty}
+\begin{abstract}
+This report investigates quantitative trading strategies with a focus on short interest, liquidity, and time-series momentum. We replicate and extend the comomentum framework of \citet{LouPolk2021}, which infers aggregate arbitrage activity from return correlations among extreme momentum decile stocks. Using a universe of 7,261 US equities over 1,513 weeks (1992--2020), we construct the comomentum signal as the average pairwise abnormal correlation within winner and loser deciles after controlling for the Fama--French three factors. We demonstrate that an inverse-comomentum-scaled momentum strategy outperforms the standard momentum factor by reducing exposure during periods of crowded trading. We further investigate the determinants of comomentum using time-series OLS regressions with Newey--West standard errors, finding that trailing market returns are the strongest available predictor of future comomentum levels.
+\end{abstract}
+
+% --- TABLE OF CONTENTS ON ITS OWN PAGE (no page number) ---
+\newpage
+\thispagestyle{empty}
+\tableofcontents
+
+% --- MAIN CONTENT (page numbering starts here at 1) ---
+\newpage
+\setcounter{page}{1}
+\section{Introduction}
+Write your introduction here.
+
+% =====================================================================
+\section{Data}
+% =====================================================================
+\noindent\autoref{tab:loading_summary} summarises input datasets, their dimensionality and coverage. The returns dataset consists of 7{,}261 US stocks over 1{,}513 weeks (1992--2020). Only 25.5\% are actively listed in any given week, the remaining 74.5\% represents pre-IPO or post-delisting periods, which is typical for a full-universe dataset that avoids survivorship bias.
+
+\input{table_loading}
+
+\noindent\autoref{fig:plot1_universe_size} shows out of the 7,261 unique stocks in the dataset, at most 2,418 are listed simultaneously in any single week, with the minimum of 856 occurring at the start of the sample in 1992. The sharpest drawdown in the investable universe coincides with the 2008 Global Financial Crisis \citep{Doidge2025}, the overall trajectory is one of long-run expansion, peaking near the end of the sample around 2019--2020.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{plot1_universe_size}
+    \caption{Number of live (tradeable) stocks per week}
+    \label{fig:plot1_universe_size}
+\end{figure}
+
+\begin{wrapfigure}{r}{0.48\textwidth}
+    \centering
+    \vspace{-12pt}
+    \includegraphics[width=0.46\textwidth]{plot3_return_statistics}
+    \caption{Weekly cross-sectional return statistics: mean, median, and dispersion over time}
+    \label{fig:plot3_return_statistics}
+    \vspace{-10pt}
+\end{wrapfigure}
+\noindent Three crisis episodes dominate both panels in \autoref{fig:plot3_return_statistics}: the dot-com bust (2000), the Global Financial Crisis (2008--2009), and the COVID shock (2020). Each produces extreme mean-return swings, the GFC registers the deepest weekly loss (below $-15\%$) and the strongest rebound (above $+18\%$), while cross-sectional volatility spikes from a baseline of 3--5\% to peaks of 12--15\% during the same events.
+
+\noindent\autoref{fig:plot6_ff_cumulative_returns} presents the cumulative returns of the Fama--French factors \citep{FamaFrench2015, FamaFrench1992}. The series span 1{,}513 weeks (1992--2020) and show sharply divergent long-horizon performance patterns.
+
+Market excess return (Mkt--RF) compounds to roughly 700\%, driven primarily by the post-global financial crisis bull market, whereas value factor (HML) peaks around 200\% in the mid-1990s before entering a prolonged decline. The size factor (SMB) remains essentially flat throughout the sample, and the RF compounds steadily to approximately 110\%, flattening after 2008 as the Federal Reserve maintained near-zero interest rates.
+
+The comomentum signal in \citet{LouPolk2021} is designed to detect the crowding that amplifies such reversals. The same crisis windows where all three factor series show abrupt dislocations are precisely those in which comomentum should have its strongest predictive power for momentum reversal.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{plot6_ff_cumulative_returns}
+    \caption{Cumulative returns of the Fama--French factors (1992--2020)}
+    \label{fig:plot6_ff_cumulative_returns}
+\end{figure}
+
+
+% =====================================================================
+\section{Methodology}
+% =====================================================================
+
+\subsection{Momentum Signal Construction}
+
+We construct a standard cross-sectional momentum signal following \citet{Jegadeesh1993}. At each week $t$, we compute a rolling momentum score for every stock using a 48-week lookback window (approximately 11 months of compounded returns) and a 4-week skip of the most recent weeks to avoid short-term reversal contamination \citep{Jegadeesh1995}. The total history required before a stock can receive its first score is therefore $48 + 4 = 52$ weeks. Formally, for stock $i$ at week $t$:
+\begin{equation}
+    \text{MOM}_{i,t} = \prod_{k=t-51}^{t-4} (1 + r_{i,k}) - 1
+\end{equation}
+where $r_{i,k}$ is the weekly return of stock $i$ in week $k$. The skip window is applied on a \emph{rolling} basis: at each computation date $t$, the four most recent weeks relative to $t$ are excluded, and the 48 weeks immediately preceding them form the lookback window. This yields the first valid momentum score at week 52 (25 December 1992), giving 1{,}462 scored weeks in our sample.
+
+\textbf{Eligibility.} A stock receives a momentum score at week $t$ only if \emph{all} 52 weeks in the full window $[t-51, \ldots, t]$ have valid (non-NaN) returns. This means both the 48 lookback weeks and the 4 skip weeks must have traded returns. If any single week is missing, the stock receives no score for that date. This naturally handles stocks with trading gaps: they are included only in periods where they have a continuous 52-week traded stretch, without requiring a global minimum-listing threshold.
+
+The raw momentum scores are then cross-sectionally standardised (z-scored) at each week to obtain $\text{MOM}^{*}_{i,t}$, which serves as the factor exposure in Fama--MacBeth regressions.
+
+
+\subsection{Fama--MacBeth Factor Returns}
+
+Following \citet{FamaMacBeth1973}, we estimate the momentum factor return at each week $t$ by running a cross-sectional OLS regression:
+\begin{equation}
+    r_{i,t} = \alpha_t + \gamma_t \, \text{MOM}^{*}_{i,t-1} + \varepsilon_{i,t}
+\end{equation}
+where $r_{i,t}$ is the weekly return of stock $i$ and $\text{MOM}^{*}_{i,t-1}$ is the lagged standardised momentum exposure. A stock enters the regression at week $t$ only if it satisfies all three conditions simultaneously: (i) it is listed (live indicator $= 1$), (ii) its return $r_{i,t}$ is non-missing, and (iii) its lagged momentum score $\text{MOM}^{*}_{i,t-1}$ is non-missing. A minimum of three valid stocks is required to run the regression in any given week.
+
+The slope $\gamma_t$ is the weekly factor return of the momentum strategy --- it captures the cross-sectional premium earned by stocks with higher momentum exposure. The time series of $\gamma_t$ values, together with its $t$-statistic $t = \bar{\gamma}\, / \, (\sigma_{\gamma} / \sqrt{T})$, provides the primary test of whether momentum commands a significant risk premium.
+
+
+\subsection{Comomentum Construction}
+
+We construct the comomentum measure following \citet{LouPolk2021}. The procedure is applied at every week $t$ from week 52 onwards (the first week with valid momentum scores) and proceeds in five steps.
+
+\textbf{Step 1: Decile sorting.} All stocks that are currently listed and have a valid momentum score at week $t$ are sorted into deciles based on their raw momentum. The extreme loser decile comprises the bottom 10\% and the extreme winner decile the top 10\%. A minimum of 20 valid stocks is required to form a meaningful sort; weeks with fewer are skipped.
+
+\textbf{Step 2: Rolling FF3 residuals.} For every stock in the loser or winner decile, we regress its last 52 weeks of returns on the Fama--French three factors \citep{FamaFrench1992} using OLS:
+\begin{equation}
+    r_{i,s} = \alpha_i + \beta_{i,1} \, \text{MktRF}_s + \beta_{i,2} \, \text{SMB}_s + \beta_{i,3} \, \text{HML}_s + \epsilon_{i,s}, \qquad s \in [t-51, \ldots, t]
+\end{equation}
+Following \citet{LewellenNagel2006}, we allow betas to vary over time by using a rolling 52-week estimation window rather than assuming constant factor loadings. A stock must have all 52 weekly returns available in the regression window to be included; no partial windows are permitted.
+
+\textbf{Step 3: Pairwise abnormal correlations.} Within each decile, we compute the average pairwise correlation among all $K(K-1)/2$ unique pairs of FF3 residual series:
+\begin{align}
+    \text{CoMOM}_L &= \frac{2}{K_L(K_L - 1)} \sum_{i<j} \text{Corr}(\epsilon^L_i, \, \epsilon^L_j) \\[6pt]
+    \text{CoMOM}_W &= \frac{2}{K_W(K_W - 1)} \sum_{i<j} \text{Corr}(\epsilon^W_i, \, \epsilon^W_j)
+\end{align}
+where $\epsilon^L_i$ ($\epsilon^W_i$) is the 52-week FF3 residual vector of stock $i$ in the loser (winner) decile, and $K_L$ ($K_W$) is the number of eligible stocks in each decile.
+
+\textbf{Step 4: Aggregation.} The aggregate comomentum measure is the simple average of the winner and loser components:
+\begin{equation}
+    \text{CoMOM}_t = \tfrac{1}{2} \left(\text{CoMOM}_{W,t} + \text{CoMOM}_{L,t}\right)
+\end{equation}
+
+\textbf{Step 5: Interpretation.} A high value of CoMOM indicates elevated abnormal return correlations among extreme momentum stocks --- co-movement that cannot be explained by the Fama--French factors. \citet{LouPolk2021} argue this excess co-movement results from coordinated trading by momentum arbitrageurs: when many investors buy the same basket of winners and sell the same basket of losers, their collective order flow pushes prices in correlated directions beyond what fundamentals would predict. Thus CoMOM serves as a real-time proxy for the \emph{crowdedness} of the momentum trade.
+
+In our sample, comomentum is computable for 1{,}462 out of 1{,}513 weeks, with the first 51 weeks unavailable due to the history requirements.
+
+
+\subsection{Market Variables}
+
+We compute two market-level conditioning variables:
+\begin{itemize}[nosep]
+    \item \textbf{MRET} --- the trailing 2-year (104-week) compounded market return, computed from weekly Mkt-RF and RF series.
+    \item \textbf{MVOL} --- the trailing 2-year standard deviation of monthly market returns. Weekly market returns are first compounded to monthly frequency, then a 24-month rolling standard deviation is computed.
+\end{itemize}
+These variables serve as controls to verify that comomentum captures information beyond broad market conditions.
+
+
+\subsection{Adjusted Momentum Strategy}
+
+The key insight of \citet{LouPolk2021} is that high comomentum signals crowded momentum trading, which predicts subsequent momentum reversals. We exploit this by \emph{timing} the momentum strategy: increasing the bet when comomentum is low (uncrowded) and decreasing it when comomentum is high (crowded).
+
+\textbf{Why scale factor returns, not exposures.} A natural first approach would be to multiply each stock's cross-sectional momentum z-score by a time-varying scaling factor $s_t$. However, because $s_t$ is identical for all stocks in a given week, re-standardising the scaled exposures perfectly undoes the scaling:
+\[
+    z^{\text{new}}_i = \frac{s_t \cdot z_i - \overline{s_t \cdot z}}{\text{std}(s_t \cdot z)} = \frac{s_t \cdot z_i}{|s_t|} = z_i
+\]
+We therefore apply the scaling to the \emph{factor return} series $\gamma_t$ obtained from the Fama--MacBeth regressions, which correctly represents a strategy that varies its capital allocation over time.
+
+\textbf{Procedure.} The adjustment proceeds in three steps:
+\begin{enumerate}[nosep]
+    \item \textbf{Expanding-window percentile rank.} At each week $t$, we compute the percentile rank of $\text{CoMOM}_t$ relative to all comomentum values observed from the start of the sample up to week $t-1$ (strictly past, no look-ahead). A minimum of 10 past values is required before the first rank can be computed.
+    \item \textbf{Scaling factor.} The time-varying scaling factor is:
+    \begin{equation}
+        s_t = 2 - \text{PctRank}_{t-1}(\text{CoMOM})
+    \end{equation}
+    This maps comomentum ranks into a $[1, 2]$ range: when $\text{CoMOM}$ is at its historical low ($\text{rank} \approx 0$), $s_t \approx 2$ (double the bet); when at its historical high ($\text{rank} \approx 1$), $s_t \approx 1$ (maintain the bet at par). Note that the scaling uses the \emph{lagged} percentile rank to ensure the signal is available before the return it is predicting.
+    \item \textbf{Adjusted factor returns.}
+    \begin{equation}
+        \gamma^{\text{adj}}_t = s_t \cdot \gamma_t
+    \end{equation}
+\end{enumerate}
+
+
+\subsection{Determinants of Comomentum}
+\label{sec:determinants-methodology}
+
+To investigate what drives comomentum, we follow the regression framework of \citet[Table~II]{LouPolk2021}. The dependent variable is detrended $\text{CoMOM}_t$, obtained by regressing $\text{CoMOM}$ on a linear time trend and retaining the residuals.
+
+All variables are resampled from weekly to annual frequency before estimation. For CoMOM, MRET, and MVOL, the annual value is the mean of weekly observations in each calendar year. For MOM, weekly factor returns $\gamma_t$ are compounded to obtain the annual momentum strategy return. All variables are then individually detrended by removing a linear time trend.
+
+The independent variables are lagged by one year ($t-1$). We estimate the following specifications via OLS with Newey--West \citep{NeweyWest1987} standard errors using 12 lags to correct for serial dependence:
+\begin{equation}
+    \widetilde{\text{CoMOM}}_t = a + \mathbf{b}' \, \mathbf{X}_{t-1} + u_t
+\end{equation}
+where $\widetilde{\text{CoMOM}}_t$ denotes detrended comomentum and $\mathbf{X}_{t-1}$ includes subsets of:
+\begin{itemize}[nosep]
+    \item $\text{MOM}_{t-1}$ --- the detrended lagged annual momentum strategy return,
+    \item $\text{MRET}_{t-1}$ --- the detrended lagged trailing 2-year compounded market return,
+    \item $\text{MVOL}_{t-1}$ --- the detrended lagged trailing 2-year monthly market volatility.
+\end{itemize}
+We estimate three specifications: (i) MOM only, (ii) MRET and MVOL, and (iii) all three regressors jointly.
+
+\medskip
+\noindent\textbf{Note.} The original Table~II in \citet{LouPolk2021} includes five additional regressors that require external datasets unavailable in our sample: aggregate institutional ownership of the winner decile (PIH$^W_{t-1}$), the detrended logarithm of hedge fund assets under management (AUM$_{t-1}$), the \citet{PastorStambaugh2003} liquidity factor (PS$_{t-1}$), and net arbitrage trading measures from \citet{ChenDaHuang2019} (NAT$^L_t$, NAT$^W_t$). Our analysis is therefore restricted to the three market-level and strategy-level determinants that can be constructed from the available data.
+
+
+% =====================================================================
+\section{Results}
+% =====================================================================
+
+\subsection{Summary Statistics (Table~I)}
+
+\autoref{tab:summary_statistics} presents the summary statistics for our five main variables: CoMOM, CoMOM$_L$, CoMOM$_W$, MRET, and MVOL, computed over 1{,}462 weekly observations (1992--2020).
+
+\input{table1}
+
+\textbf{Panel~A: Summary Statistics.} Average comomentum is 0.040 with a standard deviation of 0.020, indicating meaningful time-series variation in the degree of co-movement among momentum stocks. The range is wide --- from a minimum of 0.007 (near-zero excess correlation) to a maximum of 0.123 --- confirming that comomentum captures distinct regimes of low and high crowding. Loser comomentum (CoMOM$_L = 0.042$) is slightly higher on average than winner comomentum (CoMOM$_W = 0.038$), and also more volatile (std.\ 0.028 vs.\ 0.023), consistent with the observation that distressed stocks tend to co-move more tightly and exhibit more extreme crowding episodes. The market variables have 1{,}410 (MRET) and 1{,}413 (MVOL) valid observations, fewer than comomentum because MRET requires 104 weeks of history and MVOL requires 24 months. The average 2-year compounded market return is 23.8\%, with substantial variation ($\text{std} = 0.267$, range $[-0.486, 1.068]$), while average monthly market volatility is 4.2\%.
+
+\textbf{Panel~B: Correlations.} The correlation matrix reveals several important patterns. CoMOM is strongly correlated with both CoMOM$_L$ (0.827) and CoMOM$_W$ (0.732), confirming that both legs contribute meaningfully to the aggregate measure. Notably, the correlation between CoMOM$_L$ and CoMOM$_W$ is only 0.223, indicating that loser-side and winner-side crowding contain substantially \emph{different} information --- crowding among losers does not simply mirror crowding among winners. This motivates averaging both legs rather than relying on one alone.
+
+Comomentum is negatively correlated with trailing market returns ($\rho_{\text{CoMOM, MRET}} = -0.492$) and positively correlated with market volatility ($\rho_{\text{CoMOM, MVOL}} = 0.288$). This implies that comomentum rises during periods of poor past market performance and elevated volatility --- precisely the conditions under which momentum strategies are most vulnerable to crashes \citep{Asness2013}. However, these correlations are moderate, not extreme, suggesting that comomentum is not merely a proxy for market conditions but captures additional information related to arbitrage activity.
+
+MRET and MVOL are themselves negatively correlated ($-0.521$): high trailing returns tend to coincide with low volatility and vice versa.
+
+\textbf{Panel~C: Autocorrelation.} We examine the persistence of comomentum by computing correlations between non-overlapping 12-month annual means at lag $t$ and $t+1$. CoMOM exhibits a first-order autocorrelation of 0.256, with CoMOM$_L$ at 0.235 and CoMOM$_W$ at 0.188. This moderate persistence is economically meaningful: it confirms that crowding is a \emph{slow-moving regime} rather than a transient blip, which is a necessary condition for the lagged comomentum signal to retain predictive power in the adjusted momentum strategy. If comomentum were purely noise from one year to the next, a strategy that conditions on its past level would have no forecasting ability.
+
+
+\subsection{Comomentum Time Series and Event Study}
+
+\autoref{fig:comom_time_series} plots the comomentum time series at 6-month sampling intervals.  Three series are shown: aggregate CoMOM (average of both deciles), the winner-decile component CoMOM$^W$, and the loser-decile component CoMOM$^L$.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{plot_comom_time_series}
+    \caption{Comomentum time series (6-month sampling). CoMOM is the average of the winner and loser decile pairwise abnormal correlations after removing Fama--French three-factor loadings.}
+    \label{fig:comom_time_series}
+\end{figure}
+
+Several features stand out. First, loser comomentum (CoMOM$^L$) is systematically higher and more volatile than winner comomentum (CoMOM$^W$), consistent with the fact that short-selling constraints concentrate arbitrage activity disproportionately on the loser side \citep{Asness2013}. Second, comomentum exhibits clear regime behaviour: it spikes during crisis episodes --- most notably the dot-com bust (2000--2002), the Global Financial Crisis (2008--2009), and the COVID shock (2020) --- when momentum strategies suffer sharp reversals and forced unwinding drives correlated selling among crowded positions \citep{LouPolk2021}. Between crises, comomentum reverts to a low baseline, reflecting periods of uncrowded, more diversified momentum trading.
+
+\autoref{fig:comom_event_study} presents an event-study analysis of comomentum around portfolio formation dates, following \citet[Figure~2]{LouPolk2021}. Each week with a valid comomentum value is treated as a ``formation date'' (Year~0), and we trace comomentum at annual horizons from Year~$-4$ to Year~$+4$.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{plot_comom_event_study_a}
+        \caption{Average CoMOM across all formation dates.}
+        \label{fig:comom_event_study_a}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{plot_comom_event_study_b}
+        \caption{High vs.\ Low CoMOM (median split at Year~0).}
+        \label{fig:comom_event_study_b}
+    \end{subfigure}
+    \caption{Event study: average comomentum around portfolio formation (Year~0 $\pm$ 4 years).}
+    \label{fig:comom_event_study}
+\end{figure}
+
+The top panel shows that, on average, comomentum is roughly symmetric around Year~0 with a modest peak at the formation date itself, reflecting the persistence documented in Panel~C of \autoref{tab:summary_statistics}. The bottom panel reveals a striking asymmetry once we condition on the level at formation: \emph{High-CoMOM} periods (red line) exhibit a pronounced hump shape, with comomentum building gradually over the preceding years and decaying slowly afterwards. This pattern is consistent with the slow build-up of crowded positions as arbitrageurs pile into momentum strategies, followed by gradual unwinding. By contrast, \emph{Low-CoMOM} periods (grey dashed line) remain flat and low throughout the event window, indicating that uncrowded regimes are persistent and stable.
+
+The event-study evidence reinforces the economic interpretation of the adjusted momentum strategy: high-comomentum formations are precisely the dates where momentum is most crowded and subsequent reversals are most likely, motivating the $s_t = 2 - \text{PctRank}_{t-1}(\text{CoMOM})$ scaling that reduces the bet during these dangerous periods.
+
+
+\subsection{Determinants of Comomentum (Table~II)}
+
+\autoref{tab:determinants} reports the results of time-series OLS regressions of detrended CoMOM on lagged determinants, estimated with Newey--West standard errors (12 lags) over 27 annual observations.
+
+\input{table2}
+
+\textbf{Column [1]: MOM only.} The lagged momentum strategy return enters with a small positive coefficient (0.004) that is statistically insignificant ($t = 0.50$, $p = 0.62$). Past momentum performance alone does not predict future comomentum levels. The adjusted $R^2$ is effectively zero ($-0.04$).
+
+\textbf{Column [2]: MRET + MVOL.} The trailing 2-year market return is the dominant predictor, entering with a negative coefficient of $-0.017$ that is highly significant ($t = -3.66$, $p < 0.001$). This implies that periods of strong market performance are followed by lower comomentum, consistent with the interpretation that bull markets reduce herding among momentum traders by making the strategy less differentiated. Market volatility (MVOL) carries a negative sign ($-0.168$) but is statistically insignificant ($t = -0.57$).
+
+\textbf{Column [3]: All regressors.} The results are robust to including all three regressors jointly. MRET remains the only significant predictor ($-0.021$, $t = -4.04$, $p < 0.001$). MOM becomes marginally larger ($0.013$, $t = 1.42$) but still insignificant, and MVOL remains insignificant.
+
+\medskip
+\noindent\textbf{Discussion.} The low explanatory power across all specifications (adjusted $R^2$ near zero) is notable but consistent with the central finding of \citet{LouPolk2021}: comomentum is primarily driven by \emph{arbitrage activity} variables --- institutional ownership (PIH), hedge fund assets under management (AUM), and net arbitrage trading (NAT) --- rather than by market-level variables. In the original paper, including these arbitrage-activity proxies raises the adjusted $R^2$ to 0.39--0.56. Our results with market variables alone therefore serve as a useful benchmark, confirming that MRET, MVOL, and MOM collectively explain very little of the time-series variation in comomentum, and that the variation that remains is likely attributable to the capital flows and trading activity of arbitrageurs.
+
+The significant negative coefficient on MRET suggests one economically meaningful channel: following strong market performance, the marginal return to momentum trading declines, discouraging further capital inflows into the strategy, which in turn reduces comomentum. This is consistent with the ``limits to arbitrage'' literature, where market conditions affect the opportunity cost of deploying capital into quantitative strategies.
+
+
+\subsection{Standard vs.\ Adjusted Momentum Factor Returns}
+
+\autoref{fig:momentum_results} plots the cumulative factor returns for both the standard and adjusted momentum strategies over the full sample period.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{momentum_results}
+    \caption{Cumulative factor returns: standard momentum vs.\ inverse-comomentum-adjusted momentum. The adjusted strategy scales weekly factor returns by $s_t = 2 - \text{PctRank}_{t-1}(\text{CoMOM})$, increasing the bet when comomentum is low (uncrowded) and reducing it when comomentum is high (crowded).}
+    \label{fig:momentum_results}
+\end{figure}
+
+\autoref{tab:performance} compares the annualised performance statistics of the two strategies.
+
+\input{table_performance}
+
+
+% =====================================================================
+% REFERENCES
+% =====================================================================
+\newpage
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{apacite}
+\bibliography{references}
+
+% =====================================================================
+% APPENDIX
+% =====================================================================
+\newpage
+\appendix
+\section{Momentum Factor Calculation Windows}
+\label{sec:appendix-momentum}
+
+\input{table_momentum_calc}
+
+\section{Comomentum Calculation Windows}
+\label{sec:appendix-comomentum}
+
+\input{table_comom_calc}
+
+\clearpage
+\section{Market Variable Calculation Windows}
+\label{sec:appendix-mktvar}
+
+\input{table_mktvar_calc}
+
+\clearpage
+\section{Fama--MacBeth Regression Windows}
+\label{sec:appendix-famamacbeth}
+
+\input{table_fm_calc}
+
+\section{Adjusted Momentum Calculation Windows}
+\label{sec:appendix-adjmom}
+
+\input{table_adjmom_calc}
+
+\clearpage
+\section{Reproduction Instructions}
+\label{sec:appendix-reproduction}
+
+This appendix provides step-by-step instructions to clone the repository and reproduce all results on Windows, macOS, and Linux.
+
+\subsection*{Prerequisites}
+\begin{itemize}[nosep]
+    \item Python 3.9 or later
+    \item Git
+\end{itemize}
+
+\subsection*{Step 1: Clone the Repository}
+
+\begin{verbatim}
+git clone https://github.com/manpreet-sangha/momentum_trading_strategy.git
+cd momentum_trading_strategy
+\end{verbatim}
+
+\subsection*{Step 2: Create a Virtual Environment}
+
+\textbf{Windows (PowerShell):}
+\begin{verbatim}
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+\end{verbatim}
+
+\textbf{macOS / Linux (Bash):}
+\begin{verbatim}
+python3 -m venv venv
+source venv/bin/activate
+\end{verbatim}
+
+\subsection*{Step 3: Install Dependencies}
+
+\begin{verbatim}
+pip install -r requirements.txt
+\end{verbatim}
+
+\noindent The required packages are: \texttt{numpy}, \texttt{pandas}, \texttt{matplotlib}, \texttt{scipy}, \texttt{statsmodels}, \texttt{streamlit}, and \texttt{openpyxl}.
+
+\subsection*{Step 4: Run the Pipeline}
+
+\begin{verbatim}
+python momentum_strategy.py
+\end{verbatim}
+
+\noindent This executes the full pipeline: data loading, momentum signal construction, Fama--MacBeth regressions, comomentum computation, adjusted momentum scaling, summary statistics, determinants regressions, and all plot and table generation. Outputs are saved to \texttt{output\_data/} (plots, CSVs, Excel).
+
+\subsection*{Step 5: Launch the Streamlit Dashboard (Optional)}
+
+\begin{verbatim}
+streamlit run streamlit_app/app.py
+\end{verbatim}
+
+
+\clearpage
+\section{AI Usage Disclosure}
+\label{sec:appendix-ai-disclosure}
+
+AI-assisted coding tools (GitHub Copilot) were used to accelerate the implementation of data pipelines, statistical computations, and plotting routines. All generated code was reviewed, tested, and validated by the authors. AI was used strictly as a productivity tool under human supervision; all analytical decisions were made by the authors. The substantive intellectual content of this report represents our own original work.
+
+\end{document}

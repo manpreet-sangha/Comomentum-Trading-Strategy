@@ -17,9 +17,9 @@ for _p in (PROJECT_ROOT, STREAMLIT_DIR):
         sys.path.insert(0, _p)
 
 import streamlit as st
+from page_upload_and_run import render as render_upload_and_run
 from page_data_loading import render as render_data_loading
 from page_raw_data_preview import render as render_raw_data_preview
-from page_momentum_factor import render as render_momentum_factor
 
 # ── Detect mode from query string BEFORE any rendering ───────────────
 _is_raw_preview = st.query_params.get("view") == "raw_data"
@@ -50,12 +50,15 @@ st.title("📈 Comomentum Trading Strategy")
 # ─────────────────────────────────────────────────────────────────────
 # Sidebar – Navigation
 # ─────────────────────────────────────────────────────────────────────
-page = st.sidebar.radio("Navigation", ["Data Loading", "Compute Momentum Factor"])
+page = st.sidebar.radio(
+    "Navigation",
+    ["Out-of-Sample Testing", "Compute Comomentum"],
+)
 
 # =====================================================================
 # Page routing
 # =====================================================================
-if page == "Data Loading":
+if page == "Out-of-Sample Testing":
+    render_upload_and_run(PROJECT_ROOT)
+elif page == "Compute Comomentum":
     render_data_loading(PROJECT_ROOT)
-elif page == "Compute Momentum Factor":
-    render_momentum_factor(PROJECT_ROOT)
