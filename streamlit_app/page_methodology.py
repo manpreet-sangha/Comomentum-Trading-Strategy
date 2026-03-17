@@ -180,6 +180,45 @@ def render() -> None:
 
     st.divider()
 
+    # ── Fama-French Factors ──────────────────────────────────────────
+    st.subheader("Role of Fama–French Factors")
+    st.markdown(
+        """
+        The `FamaFrench.csv` file contains four weekly time series that we use
+        throughout the pipeline:
+
+        | Column | Meaning |
+        |--------|---------|
+        | **Mkt-RF** | Market excess return (market return minus the risk-free rate) |
+        | **SMB** | Small-Minus-Big — return spread between small-cap and large-cap stocks |
+        | **HML** | High-Minus-Low — return spread between value and growth stocks |
+        | **RF** | Risk-free rate (US Treasury bill rate, weekly) |
+
+        These factors come from the Fama & French (1992, 1993) three-factor model,
+        which says a stock's return can be explained by its exposure to the overall
+        market, its size, and its value characteristics.
+
+        **Where we use them in the code:**
+
+        - **Step 3 — Comomentum (`comomentum/ff3_residuals.py`):** For each stock
+          in the winner or loser decile, we regress its last 52 weeks of returns on
+          Mkt-RF, SMB, and HML. The leftover (residuals) represent the part of each
+          stock's return that the three factors *cannot* explain. We then measure how
+          correlated these residuals are across stocks — that is the comomentum signal.
+
+        - **Step 4 — Market Variables (`data/market_variables.py`):** We use Mkt-RF
+          and RF to compute the trailing 2-year market return (MRET) and market
+          volatility (MVOL), which serve as control variables in the determinants
+          regression.
+
+        In short, the Fama–French factors let us strip out "normal" sources of
+        co-movement (market, size, value) so that the remaining correlations
+        genuinely reflect crowded momentum trading rather than broad market moves.
+        """
+    )
+
+    st.divider()
+
     # ── References ───────────────────────────────────────────────────
     st.subheader("References")
     st.markdown(
