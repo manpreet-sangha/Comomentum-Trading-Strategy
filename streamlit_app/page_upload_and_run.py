@@ -198,14 +198,6 @@ def _run_pipeline(project_root: str, status_container, progress_bar,
                 if len(df_gaps) > 0:
                     st.caption("Stocks with trading gaps (kept for per-window checks):")
                     st.dataframe(df_gaps.head(20), use_container_width=True)
-                st.divider()
-                st.markdown("##### Output CSVs")
-                _show_csv(os.path.join(output_dir, "stocks_short_lived.csv"),
-                          "stocks_short_lived.csv")
-                _show_csv(os.path.join(output_dir, "stocks_with_trading_gaps.csv"),
-                          "stocks_with_trading_gaps.csv")
-                _show_csv(os.path.join(output_dir, "combined_data_verification.csv"),
-                          "combined_data_verification.csv")
 
         # ── Step 2: Compute Standard Momentum ────────────────────────
         _update("Computing standard momentum signal …", 17, "compute_momentum", "running")
