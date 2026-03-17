@@ -49,12 +49,23 @@ if _is_raw_preview:
 st.title("📈 Comomentum Trading Strategy")
 
 # ─────────────────────────────────────────────────────────────────────
-# Sidebar – Navigation
+# Sidebar – Navigation  (synced with ?page= query param)
 # ─────────────────────────────────────────────────────────────────────
+_PAGES = ["Methodology", "Compute Comomentum", "Out-of-Sample Testing"]
+_PAGE_KEYS = {p.lower().replace(" ", "-"): p for p in _PAGES}
+
+# Read page from URL if present
+_url_key = st.query_params.get("page", "").lower()
+_default_index = list(_PAGE_KEYS.values()).index(_PAGE_KEYS[_url_key]) if _url_key in _PAGE_KEYS else 0
+
 page = st.sidebar.radio(
     "Navigation",
-    ["Methodology", "Compute Comomentum", "Out-of-Sample Testing"],
+    _PAGES,
+    index=_default_index,
 )
+
+# Write page back to URL
+st.query_params["page"] = page.lower().replace(" ", "-")
 
 # =====================================================================
 # Page routing

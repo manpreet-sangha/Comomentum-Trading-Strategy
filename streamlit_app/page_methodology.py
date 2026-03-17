@@ -59,6 +59,11 @@ def render() -> None:
         produce standardised momentum exposures used in the next step.
         """
     )
+    st.caption(
+        "Assumptions: We compound returns geometrically (not summed), use total returns "
+        "(not excess), require all 52 weeks to be present (no partial windows), treat "
+        "48 weeks as ~11 months, apply no microstructure corrections, and rebalance weekly."
+    )
 
     # Step 2 — Fama-MacBeth
     st.markdown("#### Step 2 · Fama–MacBeth Factor Returns")
@@ -77,6 +82,11 @@ def render() -> None:
         earned by high-momentum stocks. Its time-series *t*-statistic tests
         whether momentum commands a significant risk premium.
         """
+    )
+    st.caption(
+        "Assumptions: We use a single-factor model (momentum only, no size or value controls), "
+        "equal-weight all stocks, apply no Newey–West correction within each week, need at "
+        "least 3 stocks per regression, and let the intercept be estimated freely."
     )
 
     # Step 3 — Comomentum
@@ -108,6 +118,12 @@ def render() -> None:
         trading by momentum arbitrageurs.
         """
     )
+    st.caption(
+        "Assumptions: We use all eligible stocks for decile breakpoints (not NYSE-only), "
+        "use raw returns in FF3 regressions (the intercept absorbs the risk-free rate), "
+        "compute standard Pearson correlations (no Fisher z-transform), and need at least "
+        "2 stocks per decile and 20 stocks overall."
+    )
 
     # Step 4 — Adjusted Momentum
     st.markdown("#### Step 4 · Adjusted Momentum Strategy")
@@ -132,6 +148,12 @@ def render() -> None:
         """
     )
     st.latex(r"\gamma^{\text{adj}}_t = s_t \cdot \gamma_t")
+    st.caption(
+        "Assumptions: We rank comomentum using an expanding window (only past data), "
+        "wait for at least 10 observations before the first rank, the scaling factor "
+        "stays between 1 and 2 (we never reduce below the original bet), and we do not "
+        "model transaction costs or market impact."
+    )
 
     st.divider()
 
@@ -149,6 +171,11 @@ def render() -> None:
 
         **Sample period:** January 1992 – December 2020
         """
+    )
+    st.caption(
+        "Assumptions: We treat returns as decimals, leave missing values as NaN (no filling in), "
+        "do not remove outliers or adjust for delistings, and only use the three Fama–French "
+        "factors plus the risk-free rate."
     )
 
     st.divider()

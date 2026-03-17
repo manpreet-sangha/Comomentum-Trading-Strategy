@@ -14,8 +14,6 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-_MAX_PREVIEW_ROWS = 20
-
 
 # ── File specifications ──────────────────────────────────────────────
 _FILE_SPECS = [
@@ -126,20 +124,20 @@ def _run_pipeline(project_root: str, status_container, progress_bar,
         if os.path.isfile(path):
             st.image(path, caption=caption, use_container_width=True)
 
-    def _show_csv(path: str, label: str = ""):
-        """Display a CSV preview inside the current context."""
+    def _show_table(path: str, label: str = ""):
+        """Display a full CSV or Excel file inside the current context."""
         if not os.path.isfile(path):
             return
-        df = pd.read_csv(path, nrows=_MAX_PREVIEW_ROWS + 1)
-        total_rows = sum(1 for _ in open(path, encoding="utf-8")) - 1  # exclude header
+        if path.endswith(".xlsx"):
+            df = pd.read_excel(path)
+        else:
+            df = pd.read_csv(path)
         if label:
             st.markdown(f"**{label}**")
-        if total_rows > _MAX_PREVIEW_ROWS:
-            st.caption(f"Showing first {_MAX_PREVIEW_ROWS} of {total_rows:,} rows "
-                       f"(large dataset — {os.path.getsize(path)/1024:.0f} KB)")
-            st.dataframe(df.head(_MAX_PREVIEW_ROWS), use_container_width=True)
-        else:
-            st.dataframe(df, use_container_width=True)
+        row_height = 35
+        header_height = 38
+        height = header_height + row_height * len(df) + 2
+        st.dataframe(df, use_container_width=True, height=height)
 
     # Render initial state (all pending)
     _render_step_tracker(status_container, step_statuses)
@@ -169,6 +167,10 @@ def _run_pipeline(project_root: str, status_container, progress_bar,
                             "Weekly Return Statistics")
                 _show_image(os.path.join(output_dir, "plot6_ff_cumulative_returns.png"),
                             "FF Factor Cumulative Returns")
+                st.divider()
+                st.markdown("##### Output Files")
+                _show_table(os.path.join(output_dir, "combined_data_verification.xlsx"),
+                            "combined_data_verification.xlsx")
 
         # ── Step 1b: Stock Diagnostics ───────────────────────────────
         _update("Running stock diagnostics …", 12, "stock_diagnostics", "running")
@@ -232,11 +234,11 @@ def _run_pipeline(project_root: str, status_container, progress_bar,
                             "Factor Time Series Comparison")
                 st.divider()
                 st.markdown("##### Output CSVs")
-                _show_csv(os.path.join(output_dir, "momentum_raw.csv"),
+                _show_table(os.path.join(output_dir, "momentum_raw.csv"),
                           "momentum_raw.csv")
-                _show_csv(os.path.join(output_dir, "momentum_standardised.csv"),
+                _show_table(os.path.join(output_dir, "momentum_standardised.csv"),
                           "momentum_standardised.csv")
-                _show_csv(os.path.join(output_dir, "momentum_summary.csv"),
+                _show_table(os.path.join(output_dir, "momentum_summary.csv"),
                           "momentum_summary.csv")
 
         # ── Step 3: Fama-MacBeth ─────────────────────────────────────
@@ -260,6 +262,10 @@ def _run_pipeline(project_root: str, status_container, progress_bar,
                 c2.metric("t-statistic", f"{tstat_std:.4f}")
                 c3.metric("Mean weekly γ",
                           f"{np.nanmean(gamma_std)*100:.4f}%")
+                st.divider()
+                st.markdown("##### Output Files")
+                _show_table(os.path.join(output_dir, "fama_macbeth_standard_momentum.xlsx"),
+                            "fama_macbeth_standard_momentum.xlsx")
 
         # ── Step 4: Compute Comomentum ───────────────────────────────
         _update("Computing comomentum (this may take a while) …", 47,
@@ -334,6 +340,12 @@ def _run_pipeline(project_root: str, status_container, progress_bar,
                             "Summary Statistics (Table I)")
                 _show_image(os.path.join(output_dir, "determinants_table.png"),
                             "Determinants of Comomentum (Table II)")
+                st.divider()
+                st.markdown("##### Output Files")
+                _show_table(os.path.join(output_dir, "ff3_residuals.xlsx"),
+                            "ff3_residuals.xlsx")
+                _show_table(os.path.join(output_dir, "pairwise_correlations.xlsx"),
+                            "pairwise_correlations.xlsx")
 
         # ── Step 5: Adjust Momentum ──────────────────────────────────
         _update("Adjusting momentum with inverse comomentum …", 72,
