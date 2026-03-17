@@ -1,4 +1,4 @@
-# Momentum Trading Strategy
+# Comomentum Trading Strategy
 
 ### SMM282 Quantitative Trading — Coursework 2026
 
